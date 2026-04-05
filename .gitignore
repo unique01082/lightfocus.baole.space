@@ -23,7 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 
-/docs
-/ref
-.vite/*
+docs
+ref
+.vite
 .env
