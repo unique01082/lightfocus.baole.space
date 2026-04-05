@@ -815,7 +815,7 @@ export default function SolarSystem() {
 
       {/* ─── Info panel (bottom-left) ─── */}
       <div className={`info ${uiHidden ? 'ui-hidden' : ''}`}>
-        <strong style={{ fontFamily: "'Orbitron', monospace", color: 'var(--star-gold)' }}>
+        <strong style={{ fontFamily: "'Space Grotesk', sans-serif", color: 'var(--accent-1)' }}>
           LIGHT FOCUS
         </strong>
         <br />
@@ -1193,8 +1193,8 @@ export default function SolarSystem() {
                           border: '1px solid rgba(255,255,255,0.2)',
                           borderRadius: 4,
                           padding: '6px 10px',
-                          color: 'var(--nasa-white)',
-                          fontFamily: "'Titillium Web', sans-serif",
+                          color: 'var(--text-primary)',
+                          fontFamily: "'Space Grotesk', sans-serif",
                           fontSize: 12,
                         }}
                       />
@@ -1320,7 +1320,7 @@ export default function SolarSystem() {
       {/* ─── Footer ─── */}
       <footer className={`nasa-footer ${uiHidden ? 'ui-hidden' : ''}`}>
         <div className="footer-content">
-          <strong style={{ color: 'var(--star-gold)' }}>LIGHT FOCUS</strong> — Bullseye Task Manager
+          <strong style={{ color: 'var(--accent-1)' }}>LIGHT FOCUS</strong> — Bullseye Task Manager
         </div>
       </footer>
     </>
@@ -1364,11 +1364,11 @@ function TaskForm({
   const inputStyle: React.CSSProperties = {
     width: '100%',
     background: 'rgba(0,0,0,0.3)',
-    border: '1px solid rgba(255,255,255,0.2)',
+    border: '1px solid rgba(255,255,255,0.1)',
     borderRadius: 6,
     padding: '8px 12px',
-    color: 'var(--nasa-white)',
-    fontFamily: "'Titillium Web', sans-serif",
+    color: 'var(--text-primary)',
+    fontFamily: "'Space Grotesk', sans-serif",
     fontSize: 13,
     outline: 'none',
   };
@@ -1377,11 +1377,11 @@ function TaskForm({
     display: 'block',
     marginBottom: 4,
     fontSize: 11,
-    color: 'var(--star-gold)',
+    color: 'var(--accent-1)',
     fontWeight: 600,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
-    fontFamily: "'Orbitron', monospace",
+    fontFamily: "'Space Grotesk', sans-serif",
   };
 
   return (
@@ -1458,7 +1458,7 @@ function TaskForm({
               onChange={e => onColorChange(e.target.value)}
               style={{ width: 40, height: 34, border: 'none', borderRadius: 4, cursor: 'pointer' }}
             />
-            <span style={{ fontSize: 12, color: 'var(--nasa-gray)' }}>{color}</span>
+            <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{color}</span>
           </div>
         </div>
       </div>

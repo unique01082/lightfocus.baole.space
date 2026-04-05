@@ -34,8 +34,8 @@
   --panel-bg: rgba(15, 12, 41, 0.85);
   --panel-border: rgba(102, 126, 234, 0.3);
   --button-primary: linear-gradient(135deg, var(--accent-1), var(--accent-2));
-  --button-secondary: linear-gradient(135deg, #3a3a5c, #2a2a4a);
-  --button-active: linear-gradient(135deg, var(--accent-4), #d32f2f);
+  --button-secondary: linear-gradient(135deg, #2a2a4a, #1e1e3a);
+  --button-active: linear-gradient(135deg, var(--accent-3), var(--accent-4));
   --button-hover: linear-gradient(135deg, var(--accent-1), #5a6dee);
 }
 
