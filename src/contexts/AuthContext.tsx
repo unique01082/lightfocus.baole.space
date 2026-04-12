@@ -6,7 +6,7 @@ import {
   type ReactNode,
 } from 'react';
 import { userManager, type OidcUser } from '../services/oidc';
-import { supabase } from '../services/supabase';
+import { users } from '../services/lf';
 
 export interface UserProfile {
   sub: string;
@@ -37,44 +37,24 @@ async function syncProfile(oidcUser: OidcUser): Promise<UserProfile> {
     email.split('@')[0];
   const avatarUrl = oidcUser.profile.picture as string | undefined;
 
-  if (supabase) {
-    const { data, error } = await supabase
-      .from('user_profiles')
-      .upsert(
-        { sub, email, name, avatar_url: avatarUrl ?? null },
-        { onConflict: 'sub', ignoreDuplicates: false }
-      )
-      .select()
-      .single();
-
-    if (!error && data) {
+  try {
+    // Fetch user profile from API (response interceptor already extracts data)
+    const profile = await users.usersControllerGetMe();
+    
+    if (profile) {
       return {
-        sub: data.sub,
-        email: data.email,
-        name: data.name,
-        avatarUrl: data.avatar_url ?? undefined,
-        role: data.role as 'user' | 'admin',
+        sub: (profile as any).sub ?? sub,
+        email: (profile as any).email ?? email,
+        name: (profile as any).name ?? name,
+        avatarUrl: (profile as any).avatarUrl ?? (profile as any).avatar_url ?? avatarUrl,
+        role: ((profile as any).role as 'user' | 'admin') ?? 'user',
       };
     }
-
-    // Fallback: try reading existing
-    const { data: existing } = await supabase
-      .from('user_profiles')
-      .select()
-      .eq('sub', sub)
-      .single();
-
-    if (existing) {
-      return {
-        sub: existing.sub,
-        email: existing.email,
-        name: existing.name,
-        avatarUrl: existing.avatar_url ?? undefined,
-        role: existing.role as 'user' | 'admin',
-      };
-    }
+  } catch (error) {
+    console.warn('Failed to fetch user profile from API, using OIDC data:', error);
   }
 
+  // Fallback to OIDC profile data
   return { sub, email, name, avatarUrl, role: 'user' };
 }
 
@@ -88,9 +68,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!ou) {
       setOidcUser(null);
       setUser(null);
+      localStorage.removeItem('token');
       return;
     }
     setOidcUser(ou);
+    
+    // Store Authentik access token for API calls
+    if (ou.access_token) {
+      localStorage.setItem('token', ou.access_token);
+    }
+    
     const profile = await syncProfile(ou);
     setUser(profile);
   }, []);
@@ -116,6 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const onLoggedOut = () => {
       setOidcUser(null);
       setUser(null);
+      localStorage.removeItem('token');
     };
 
     mgr.events.addUserLoaded(onLoggedIn);
@@ -135,6 +123,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const signOut = useCallback(async () => {
+    localStorage.removeItem('token');
     if (userManager) await userManager.signoutRedirect();
     setUser(null);
     setOidcUser(null);

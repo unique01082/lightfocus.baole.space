@@ -1,0 +1,14 @@
+// API modified time: {{ apiResourceModifyTime }}
+// API resourceId: {{ apiResourceId }}
+{% for api in list -%}
+import * as {{ api.controllerName }} from './{{ api.fileName }}';
+{% endfor -%}
+
+
+export type { {{ namespace }} } from './typings';
+
+export {
+  {% for api in list -%}
+  {{ api.controllerName }},
+  {% endfor -%}
+};

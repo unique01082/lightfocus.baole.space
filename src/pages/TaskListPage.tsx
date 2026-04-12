@@ -1,8 +1,18 @@
 import { useState } from 'react';
 import { Link } from 'react-router';
+import { useRequest, useToggle, useLocalStorageState } from 'ahooks';
 import type { Task, Priority, Complexity, BullseyeRank } from '../types/task';
-import { loadTasks, saveTasks, createTask, createSubtask, getRandomColor } from '../stores/taskStore';
+import { 
+  loadTasks, 
+  createTaskOnServer, 
+  updateTaskOnServer,
+  deleteTaskFromServer,
+  createSubtaskOnServer,
+  updateSubtaskOnServer,
+  getRandomColor 
+} from '../stores/taskStore';
 import { rankTasks } from '../utils/ranking';
+import { useAuth } from '../contexts/useAuth';
 
 const ORBIT_LABELS: Record<BullseyeRank, string> = {
   1: 'Critical', 2: 'Very High', 3: 'High', 4: 'Medium',
@@ -18,10 +28,16 @@ const PRIORITY_COLORS: Record<Priority, string> = {
 };
 
 export default function TaskListPage() {
-  const [tasks, setTasks] = useState<Task[]>(() => loadTasks());
-  const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all');
-  const [sortBy, setSortBy] = useState<'rank' | 'priority' | 'dueDate' | 'created'>('rank');
-  const [showCreateForm, setShowCreateForm] = useState(false);
+  const { user, loading: authLoading } = useAuth();
+  
+  // Use ahooks for persistent UI preferences
+  const [filter, setFilter] = useLocalStorageState<'all' | 'active' | 'completed'>('taskFilter', {
+    defaultValue: 'all'
+  });
+  const [sortBy, setSortBy] = useLocalStorageState<'rank' | 'priority' | 'dueDate' | 'created'>('taskSort', {
+    defaultValue: 'rank'
+  });
+  const [showCreateForm, { toggle: toggleCreateForm, setLeft: hideCreateForm }] = useToggle(false);
 
   // Form state
   const [formTitle, setFormTitle] = useState('');
@@ -30,6 +46,120 @@ export default function TaskListPage() {
   const [formComplexity, setFormComplexity] = useState<Complexity>(3);
   const [formDueDate, setFormDueDate] = useState('');
   const [formColor, setFormColor] = useState(getRandomColor());
+
+  // Use ahooks useRequest for fetching tasks
+  const {
+    data: tasks = [],
+    loading,
+    run: fetchTasks,
+    mutate: setTasks,
+  } = useRequest(loadTasks, {
+    ready: !authLoading && !!user, // Only run when user is authenticated
+    refreshDeps: [user],
+  });
+
+  // Use ahooks useRequest for mutations
+  const { run: createTask, loading: creating } = useRequest(
+    async (taskData: Partial<Task>) => {
+      const newTask = await createTaskOnServer(taskData);
+      if (newTask) {
+        setTasks([...tasks, newTask]);
+        // Reset form
+        setFormTitle('');
+        setFormDesc('');
+        setFormPriority('medium');
+        setFormComplexity(3);
+        setFormDueDate('');
+        setFormColor(getRandomColor());
+        hideCreateForm();
+      }
+      return newTask;
+    },
+    { manual: true }
+  );
+
+  const { run: toggleComplete } = useRequest(
+    async (id: string) => {
+      const task = tasks.find(t => t.id === id);
+      if (!task) return null;
+      
+      const updated = await updateTaskOnServer(id, { completed: !task.completed });
+      if (updated) {
+        setTasks(tasks.map(t => t.id === id ? updated : t));
+      }
+      return updated;
+    },
+    { manual: true }
+  );
+
+  const { run: deleteTask } = useRequest(
+    async (id: string) => {
+      const success = await deleteTaskFromServer(id);
+      if (success) {
+        setTasks(tasks.filter(t => t.id !== id));
+      }
+      return success;
+    },
+    { manual: true }
+  );
+
+  const { run: toggleSubtask } = useRequest(
+    async (taskId: string, subtaskId: string) => {
+      const task = tasks.find(t => t.id === taskId);
+      if (!task) return null;
+      
+      const subtask = task.subtasks.find(s => s.id === subtaskId);
+      if (!subtask) return null;
+      
+      const updatedSubtask = await updateSubtaskOnServer(taskId, subtaskId, {
+        completed: !subtask.completed
+      });
+      
+      if (updatedSubtask) {
+        setTasks(tasks.map(t => {
+          if (t.id !== taskId) return t;
+          return {
+            ...t,
+            subtasks: t.subtasks.map(s => s.id === subtaskId ? updatedSubtask : s),
+          };
+        }));
+      }
+      return updatedSubtask;
+    },
+    { manual: true }
+  );
+
+  const { run: addSubtask } = useRequest(
+    async (taskId: string, title: string) => {
+      if (!title.trim()) return null;
+      
+      const newSubtask = await createSubtaskOnServer(taskId, title);
+      if (newSubtask) {
+        setTasks(tasks.map(t => {
+          if (t.id !== taskId) return t;
+          return { 
+            ...t, 
+            subtasks: [...t.subtasks, newSubtask]
+          };
+        }));
+      }
+      return newSubtask;
+    },
+    { manual: true }
+  );
+
+  const handleCreate = async () => {
+    if (!formTitle.trim()) return;
+    
+    await createTask({
+      title: formTitle.trim(),
+      description: formDesc.trim(),
+      priority: formPriority,
+      complexity: formComplexity,
+      dueDate: formDueDate || null,
+      color: formColor,
+    });
+  };
 
   const ranked = rankTasks(tasks);
   const filtered = ranked.filter(t => {
@@ -56,60 +186,34 @@ export default function TaskListPage() {
     }
   });
 
-  const updateTasks = (newTasks: Task[]) => {
-    setTasks(newTasks);
-    saveTasks(newTasks);
-  };
-
-  const handleCreate = () => {
-    if (!formTitle.trim()) return;
-    const task = createTask({
-      title: formTitle.trim(),
-      description: formDesc.trim(),
-      priority: formPriority,
-      complexity: formComplexity,
-      dueDate: formDueDate || null,
-      color: formColor,
-    });
-    updateTasks([...tasks, task]);
-    setFormTitle('');
-    setFormDesc('');
-    setFormPriority('medium');
-    setFormComplexity(3);
-    setFormDueDate('');
-    setFormColor(getRandomColor());
-    setShowCreateForm(false);
-  };
-
-  const handleToggleComplete = (id: string) => {
-    updateTasks(tasks.map(t => t.id === id ? { ...t, completed: !t.completed, updatedAt: new Date().toISOString() } : t));
-  };
-
-  const handleDelete = (id: string) => {
-    updateTasks(tasks.filter(t => t.id !== id));
-  };
-
-  const handleToggleSubtask = (taskId: string, subtaskId: string) => {
-    updateTasks(tasks.map(t => {
-      if (t.id !== taskId) return t;
-      return {
-        ...t,
-        subtasks: t.subtasks.map(s => s.id === subtaskId ? { ...s, completed: !s.completed } : s),
-        updatedAt: new Date().toISOString(),
-      };
-    }));
-  };
-
-  const handleAddSubtask = (taskId: string, title: string) => {
-    if (!title.trim()) return;
-    updateTasks(tasks.map(t => {
-      if (t.id !== taskId) return t;
-      return { ...t, subtasks: [...t.subtasks, createSubtask(title.trim())], updatedAt: new Date().toISOString() };
-    }));
-  };
-
   const activeTasks = tasks.filter(t => !t.completed);
   const completedCount = tasks.filter(t => t.completed).length;
+
+  if (authLoading || loading) {
+    return (
+      <div className="page-container">
+        <div className="page-content">
+          <div className="empty-state">
+            <p className="empty-icon">🌀</p>
+            <p>Loading tasks...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="page-container">
+        <div className="page-content">
+          <div className="empty-state">
+            <p className="empty-icon">🔒</p>
+            <p>Please log in to view your tasks</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="page-container">
@@ -123,7 +227,7 @@ export default function TaskListPage() {
           </div>
           <div className="tasklist-actions">
             <Link to="/" className="glass-btn">🪐 Solar System</Link>
-            <button className="accent-btn" onClick={() => setShowCreateForm(!showCreateForm)}>
+            <button className="accent-btn" onClick={toggleCreateForm}>
               {showCreateForm ? '✕ Cancel' : '➕ New Task'}
             </button>
           </div>
@@ -174,7 +278,9 @@ export default function TaskListPage() {
                 </div>
               </div>
             </div>
-            <button className="accent-btn" onClick={handleCreate} style={{ marginTop: 16 }}>🚀 Create Task</button>
+            <button className="accent-btn" onClick={handleCreate} style={{ marginTop: 16 }} disabled={creating}>
+              {creating ? '⏳ Creating...' : '🚀 Create Task'}
+            </button>
           </div>
         )}
 
@@ -206,7 +312,7 @@ export default function TaskListPage() {
                 <div className="task-card-left">
                   <button
                     className="task-check"
-                    onClick={() => handleToggleComplete(task.id)}
+                    onClick={() => toggleComplete(task.id)}
                     style={{ borderColor: task.color }}
                   >
                     {task.completed && '✓'}
@@ -226,7 +332,7 @@ export default function TaskListPage() {
                   <span className="priority-pill" style={{ backgroundColor: PRIORITY_COLORS[task.priority] + '33', color: PRIORITY_COLORS[task.priority] }}>
                     {task.priority}
                   </span>
-                  <button className="delete-btn" onClick={() => handleDelete(task.id)} title="Delete task">🗑</button>
+                  <button className="delete-btn" onClick={() => deleteTask(task.id)} title="Delete task">🗑</button>
                 </div>
               </div>
 
@@ -243,7 +349,7 @@ export default function TaskListPage() {
                     <div key={sub.id} className="subtask-item">
                       <button
                         className={`subtask-check ${sub.completed ? 'done' : ''}`}
-                        onClick={() => handleToggleSubtask(task.id, sub.id)}
+                        onClick={() => toggleSubtask(task.id, sub.id)}
                       >
                         {sub.completed ? '✓' : ''}
                       </button>
@@ -255,7 +361,7 @@ export default function TaskListPage() {
                 </div>
               )}
 
-              <SubtaskAdder taskId={task.id} onAdd={handleAddSubtask} />
+              <SubtaskAdder taskId={task.id} onAdd={addSubtask} />
             </div>
           ))}
 
@@ -263,7 +369,7 @@ export default function TaskListPage() {
             <div className="empty-state">
               <p className="empty-icon">🪐</p>
               <p>No tasks found.</p>
-              <button className="accent-btn" onClick={() => setShowCreateForm(true)}>Create your first task</button>
+              <button className="accent-btn" onClick={toggleCreateForm}>Create your first task</button>
             </div>
           )}
         </div>
@@ -274,11 +380,23 @@ export default function TaskListPage() {
 
 function SubtaskAdder({ taskId, onAdd }: { taskId: string; onAdd: (taskId: string, title: string) => void }) {
   const [title, setTitle] = useState('');
-  const [open, setOpen] = useState(false);
+  const [open, { setTrue: openForm, setFalse: closeForm }] = useToggle(false);
+
+  const resetForm = () => {
+    setTitle('');
+    closeForm();
+  };
+
+  const handleAdd = () => {
+    if (title.trim()) {
+      onAdd(taskId, title);
+      setTitle('');
+    }
+  };
 
   if (!open) {
     return (
-      <button className="add-subtask-btn" onClick={() => setOpen(true)}>+ Add subtask</button>
+      <button className="add-subtask-btn" onClick={openForm}>+ Add subtask</button>
     );
   }
 
@@ -292,16 +410,17 @@ function SubtaskAdder({ taskId, onAdd }: { taskId: string; onAdd: (taskId: strin
         autoFocus
         onKeyDown={e => {
           if (e.key === 'Enter' && title.trim()) {
-            onAdd(taskId, title);
-            setTitle('');
+            handleAdd();
           }
-          if (e.key === 'Escape') { setOpen(false); setTitle(''); }
+          if (e.key === 'Escape') {
+            resetForm();
+          }
         }}
       />
-      <button className="accent-btn-sm" onClick={() => { if (title.trim()) { onAdd(taskId, title); setTitle(''); } }}>
+      <button className="accent-btn-sm" onClick={handleAdd}>
         Add
       </button>
-      <button className="ghost-btn-sm" onClick={() => { setOpen(false); setTitle(''); }}>
+      <button className="ghost-btn-sm" onClick={resetForm}>
         Cancel
       </button>
     </div>

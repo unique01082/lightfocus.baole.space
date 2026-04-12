@@ -1,4 +1,5 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
+import { useToggle, useLocalStorageState, useRequest } from 'ahooks';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
@@ -8,7 +9,15 @@ import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPa
 import { Lensflare, LensflareElement } from 'three/examples/jsm/objects/Lensflare.js';
 import type { Task, RankedTask, BullseyeRank, Priority, Complexity, Subtask } from '../types/task';
 import { rankTasks, groupByOrbit } from '../utils/ranking';
-import { loadTasks, saveTasks, createTask, createSubtask, getRandomColor } from '../stores/taskStore';
+import { 
+  loadTasks, 
+  createTaskOnServer, 
+  updateTaskOnServer, 
+  deleteTaskFromServer,
+  createSubtaskOnServer,
+  updateSubtaskOnServer,
+  getRandomColor 
+} from '../stores/taskStore';
 
 /* ───────────── orbit distances (1-7) ───────────── */
 const ORBIT_DISTANCES: Record<BullseyeRank, number> = {
@@ -82,19 +91,45 @@ export default function SolarSystem() {
     lastPlanetPosition: THREE.Vector3;
   } | null>(null);
 
-  const [tasks, setTasks] = useState<Task[]>(() => loadTasks());
+  // Use ahooks useRequest for task loading
+  const {
+    data: tasks = [],
+    loading: tasksLoading,
+    mutate: setTasks,
+  } = useRequest(loadTasks, {
+    onSuccess: (data) => {
+      console.log('Tasks loaded:', data.length);
+    },
+  });
+
   const [selectedTask, setSelectedTask] = useState<RankedTask | null>(null);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [showTaskPanel, setShowTaskPanel] = useState(false);
-  const [controlsCollapsed, setControlsCollapsed] = useState(true);
-  const [taskListCollapsed, setTaskListCollapsed] = useState(true);
+  
+  // UI toggles with ahooks - keeping setters for backward compatibility
+  const [showCreateModal, { toggle: toggleCreateModal, set: setShowCreateModal }] = useToggle(false);
+  const [showTaskPanel, { toggle: toggleTaskPanel, set: setShowTaskPanel }] = useToggle(false);
+  const [controlsCollapsed, { toggle: toggleControls, set: setControlsCollapsed }] = useToggle(true);
+  const [taskListCollapsed, { toggle: toggleTaskList, set: setTaskListCollapsed }] = useToggle(true);
+  const [uiHidden, { toggle: toggleUI, set: setUiHidden }] = useToggle(false);
+  const [editMode, { toggle: toggleEditMode, set: setEditMode }] = useToggle(false);
+  
+  // Persistent UI preferences with localStorage
+  const [showLabelsState, setShowLabelsState] = useLocalStorageState('solarSystem.showLabels', {
+    defaultValue: false
+  });
+  const [showMoonLabelsState, setShowMoonLabelsState] = useLocalStorageState('solarSystem.showMoonLabels', {
+    defaultValue: false
+  });
+  const [showOrbitsState, setShowOrbitsState] = useLocalStorageState('solarSystem.showOrbits', {
+    defaultValue: true
+  });
+  const [showMoonsState, setShowMoonsState] = useLocalStorageState('solarSystem.showMoons', {
+    defaultValue: true
+  });
+  const [bloomManualState, setBloomManualState] = useLocalStorageState('solarSystem.bloomManual', {
+    defaultValue: false
+  });
+  
   const [speedDisplay, setSpeedDisplay] = useState('0.4x Slow');
-  const [uiHidden, setUiHidden] = useState(false);
-  const [showLabelsState, setShowLabelsState] = useState(false);
-  const [showMoonLabelsState, setShowMoonLabelsState] = useState(false);
-  const [showOrbitsState, setShowOrbitsState] = useState(true);
-  const [showMoonsState, setShowMoonsState] = useState(true);
-  const [bloomManualState, setBloomManualState] = useState(false);
 
   // Form state
   const [formTitle, setFormTitle] = useState('');
@@ -105,12 +140,8 @@ export default function SolarSystem() {
   const [formColor, setFormColor] = useState(() => getRandomColor());
   const [newSubtaskTitle, setNewSubtaskTitle] = useState('');
 
-  // Edit state
-  const [editMode, setEditMode] = useState(false);
-
-  // Save tasks whenever they change
+  // Rebuild planets whenever tasks change
   useEffect(() => {
-    saveTasks(tasks);
     rebuildPlanets();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tasks]);
@@ -607,7 +638,7 @@ export default function SolarSystem() {
           });
           break;
         case 'h':
-          setUiHidden(prev => !prev);
+          toggleUI();
           break;
         case 'o':
           sd.showOrbits = !sd.showOrbits;
@@ -646,110 +677,167 @@ export default function SolarSystem() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  /* ───────── Task CRUD handlers ───────── */
-  const handleCreateTask = () => {
-    if (!formTitle.trim()) return;
-    const task = createTask({
-      title: formTitle.trim(),
-      description: formDesc,
-      priority: formPriority,
-      complexity: formComplexity,
-      dueDate: formDueDate || null,
-      color: formColor,
-    });
-    setTasks(prev => [...prev, task]);
-    resetForm();
-    setShowCreateModal(false);
-  };
-
-  const handleUpdateTask = () => {
-    if (!selectedTask || !formTitle.trim()) return;
-    setTasks(prev =>
-      prev.map(t =>
-        t.id === selectedTask.id
-          ? {
-              ...t,
-              title: formTitle.trim(),
-              description: formDesc,
-              priority: formPriority,
-              complexity: formComplexity,
-              dueDate: formDueDate || null,
-              color: formColor,
-              updatedAt: new Date().toISOString(),
-            }
-          : t,
-      ),
-    );
-    setEditMode(false);
-    // Update selectedTask to reflect changes
-    const updated = tasks.find(t => t.id === selectedTask.id);
-    if (updated) {
-      const ranked = rankTasks([{
-        ...updated,
+  /* ───────── Task CRUD handlers with useRequest ───────── */
+  const { run: createTask, loading: creating } = useRequest(
+    async () => {
+      if (!formTitle.trim()) return null;
+      
+      const newTask = await createTaskOnServer({
         title: formTitle.trim(),
         description: formDesc,
         priority: formPriority,
         complexity: formComplexity,
         dueDate: formDueDate || null,
         color: formColor,
-      }]);
-      setSelectedTask(ranked[0]);
-    }
+      });
+      
+      if (newTask) {
+        setTasks([...tasks, newTask]);
+        resetForm();
+        setShowCreateModal(false);
+      }
+      return newTask;
+    },
+    { manual: true }
+  );
+
+  const handleCreateTask = () => {
+    createTask();
   };
+
+  const { run: updateTask } = useRequest(
+    async () => {
+      if (!selectedTask || !formTitle.trim()) return null;
+      
+      const updated = await updateTaskOnServer(selectedTask.id, {
+        title: formTitle.trim(),
+        description: formDesc,
+        priority: formPriority,
+        complexity: formComplexity,
+        dueDate: formDueDate || null,
+        color: formColor,
+      });
+      
+      if (updated) {
+        setTasks(tasks.map(t => t.id === selectedTask.id ? updated : t));
+        setEditMode(false);
+        // Update selectedTask to reflect changes
+        const ranked = rankTasks([updated]);
+        setSelectedTask(ranked[0]);
+      }
+      return updated;
+    },
+    { manual: true }
+  );
+
+  const handleUpdateTask = () => {
+    updateTask();
+  };
+
+  const { run: deleteTask } = useRequest(
+    async (id: string) => {
+      const success = await deleteTaskFromServer(id);
+      if (success) {
+        setTasks(tasks.filter(t => t.id !== id));
+        setShowTaskPanel(false);
+        setSelectedTask(null);
+      }
+      return success;
+    },
+    { manual: true }
+  );
 
   const handleDeleteTask = (id: string) => {
-    setTasks(prev => prev.filter(t => t.id !== id));
-    setShowTaskPanel(false);
-    setSelectedTask(null);
+    deleteTask(id);
   };
+
+  const { run: toggleComplete } = useRequest(
+    async (id: string) => {
+      const task = tasks.find(t => t.id === id);
+      if (!task) return null;
+      
+      const updated = await updateTaskOnServer(id, { 
+        completed: !task.completed 
+      });
+      
+      if (updated) {
+        setTasks(tasks.map(t => t.id === id ? updated : t));
+        setShowTaskPanel(false);
+        setSelectedTask(null);
+      }
+      return updated;
+    },
+    { manual: true }
+  );
 
   const handleToggleComplete = (id: string) => {
-    setTasks(prev =>
-      prev.map(t =>
-        t.id === id ? { ...t, completed: !t.completed, updatedAt: new Date().toISOString() } : t,
-      ),
-    );
-    setShowTaskPanel(false);
-    setSelectedTask(null);
+    toggleComplete(id);
   };
+
+  const { run: addSubtask } = useRequest(
+    async (taskId: string, title: string) => {
+      if (!title.trim()) return null;
+      
+      const newSubtask = await createSubtaskOnServer(taskId, title.trim());
+      
+      if (newSubtask) {
+        setTasks(tasks.map(t =>
+          t.id === taskId
+            ? { ...t, subtasks: [...t.subtasks, newSubtask] }
+            : t
+        ));
+        setNewSubtaskTitle('');
+      }
+      return newSubtask;
+    },
+    { manual: true }
+  );
 
   const handleAddSubtask = (taskId: string, title: string) => {
-    if (!title.trim()) return;
-    const sub = createSubtask(title.trim());
-    setTasks(prev =>
-      prev.map(t =>
-        t.id === taskId
-          ? { ...t, subtasks: [...t.subtasks, sub], updatedAt: new Date().toISOString() }
-          : t,
-      ),
-    );
-    setNewSubtaskTitle('');
+    addSubtask(taskId, title);
   };
+
+  const { run: toggleSubtask } = useRequest(
+    async (taskId: string, subtaskId: string) => {
+      const task = tasks.find(t => t.id === taskId);
+      if (!task) return null;
+      
+      const subtask = task.subtasks.find(s => s.id === subtaskId);
+      if (!subtask) return null;
+      
+      const updatedSubtask = await updateSubtaskOnServer(taskId, subtaskId, {
+        completed: !subtask.completed
+      });
+      
+      if (updatedSubtask) {
+        setTasks(tasks.map(t =>
+          t.id === taskId
+            ? {
+                ...t,
+                subtasks: t.subtasks.map(s =>
+                  s.id === subtaskId ? updatedSubtask : s
+                ),
+              }
+            : t
+        ));
+      }
+      return updatedSubtask;
+    },
+    { manual: true }
+  );
 
   const handleToggleSubtask = (taskId: string, subtaskId: string) => {
-    setTasks(prev =>
-      prev.map(t =>
-        t.id === taskId
-          ? {
-              ...t,
-              subtasks: t.subtasks.map(s =>
-                s.id === subtaskId ? { ...s, completed: !s.completed } : s,
-              ),
-              updatedAt: new Date().toISOString(),
-            }
-          : t,
-      ),
-    );
+    toggleSubtask(taskId, subtaskId);
   };
 
+  // Note: No API endpoint for deleting subtasks yet, keeping local for now
   const handleDeleteSubtask = (taskId: string, subtaskId: string) => {
-    setTasks(prev =>
-      prev.map(t =>
-        t.id === taskId
-          ? { ...t, subtasks: t.subtasks.filter(s => s.id !== subtaskId), updatedAt: new Date().toISOString() }
-          : t,
-      ),
-    );
+    // TODO: Implement deleteSubtaskFromServer when API endpoint is available
+    setTasks(tasks.map(t =>
+      t.id === taskId
+        ? { ...t, subtasks: t.subtasks.filter(s => s.id !== subtaskId) }
+        : t
+    ));
   };
 
   const handleFollowPlanet = (task: RankedTask) => {
