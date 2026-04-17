@@ -7,7 +7,7 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { Lensflare, LensflareElement } from 'three/examples/jsm/objects/Lensflare.js';
-import type { Task, RankedTask, BullseyeRank, Priority, Complexity, Subtask } from '../types/task';
+import type { RankedTask, BullseyeRank, Priority, Complexity, Subtask } from '../types/task';
 import { rankTasks, groupByOrbit } from '../utils/ranking';
 import { 
   loadTasks, 
@@ -94,7 +94,6 @@ export default function SolarSystem() {
   // Use ahooks useRequest for task loading
   const {
     data: tasks = [],
-    loading: tasksLoading,
     mutate: setTasks,
   } = useRequest(loadTasks, {
     onSuccess: (data) => {
@@ -105,12 +104,12 @@ export default function SolarSystem() {
   const [selectedTask, setSelectedTask] = useState<RankedTask | null>(null);
   
   // UI toggles with ahooks - keeping setters for backward compatibility
-  const [showCreateModal, { toggle: toggleCreateModal, set: setShowCreateModal }] = useToggle(false);
-  const [showTaskPanel, { toggle: toggleTaskPanel, set: setShowTaskPanel }] = useToggle(false);
-  const [controlsCollapsed, { toggle: toggleControls, set: setControlsCollapsed }] = useToggle(true);
-  const [taskListCollapsed, { toggle: toggleTaskList, set: setTaskListCollapsed }] = useToggle(true);
+  const [showCreateModal, { set: setShowCreateModal }] = useToggle(false);
+  const [showTaskPanel, { set: setShowTaskPanel }] = useToggle(false);
+  const [controlsCollapsed, { set: setControlsCollapsed }] = useToggle(true);
+  const [taskListCollapsed, { set: setTaskListCollapsed }] = useToggle(true);
   const [uiHidden, { toggle: toggleUI, set: setUiHidden }] = useToggle(false);
-  const [editMode, { toggle: toggleEditMode, set: setEditMode }] = useToggle(false);
+  const [editMode, { set: setEditMode }] = useToggle(false);
   
   // Persistent UI preferences with localStorage
   const [showLabelsState, setShowLabelsState] = useLocalStorageState('solarSystem.showLabels', {
@@ -678,7 +677,7 @@ export default function SolarSystem() {
   }, []);
 
   /* ───────── Task CRUD handlers with useRequest ───────── */
-  const { run: createTask, loading: creating } = useRequest(
+  const { run: createTask } = useRequest(
     async () => {
       if (!formTitle.trim()) return null;
       

@@ -1,5 +1,4 @@
 import { request } from "../services";
-import type { LF } from "./typings";
 
 /** Health check Simple health check endpoint GET /api/v1 */
 export async function appControllerGetHello(options?: { [key: string]: any }) {

@@ -51,7 +51,6 @@ export default function TaskListPage() {
   const {
     data: tasks = [],
     loading,
-    run: fetchTasks,
     mutate: setTasks,
   } = useRequest(loadTasks, {
     ready: !authLoading && !!user, // Only run when user is authenticated
@@ -380,7 +379,7 @@ export default function TaskListPage() {
 
 function SubtaskAdder({ taskId, onAdd }: { taskId: string; onAdd: (taskId: string, title: string) => void }) {
   const [title, setTitle] = useState('');
-  const [open, { setTrue: openForm, setFalse: closeForm }] = useToggle(false);
+  const [open, { setRight: openForm, setLeft: closeForm }] = useToggle(false);
 
   const resetForm = () => {
     setTitle('');

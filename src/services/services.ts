@@ -21,8 +21,8 @@ request.interceptors.response.use(
     }
 
     //TODO fix typing issues
-    if (res?.response?.data?.detail) {
-      res.message = res.response.data.detail;
+    if ((res as any)?.response?.data?.detail) {
+      (res as any).message = (res as any).response.data.detail;
     }
 
     throw res;
