@@ -1,6 +1,6 @@
 import { useRequest, useToggle } from "ahooks";
 import { useEffect, useState } from "react";
-import info from '../../../package.json';
+import ViewModeSwitcher from "../../components/ViewModeSwitcher";
 import { tasks as tasksApi } from "../../services/lf";
 import type { Complexity, RankedTask } from "../../types/task";
 import { rankTasks } from "../../utils/ranking";
@@ -22,7 +22,7 @@ function planetSize(complexity: Complexity): number {
 export default function SolarSystem() {
   const { sceneDataRef, containerRef } = useThreeScene();
 
-  const { data: { data: tasks = [] } = {}, mutate: setTasks, loading: loadingTasks } = useRequest(
+  const { data: { data: tasks = [] } = {}, mutate: setTasks } = useRequest(
     tasksApi.tasksControllerFindAll,
     {
       defaultParams: [{ limit: 1000, offset: 0 }],
@@ -92,6 +92,8 @@ export default function SolarSystem() {
 
   return (
     <>
+      <ViewModeSwitcher />
+
       <div
         ref={containerRef}
         style={{
@@ -127,6 +129,18 @@ export default function SolarSystem() {
         onToggleOrbits={uiControls.handleToggleOrbits}
         showMoons={uiControls.showMoonsState || false}
         onToggleMoons={uiControls.handleToggleMoons}
+        cameraRotateSpeed={uiControls.cameraRotateSpeed || 0.3}
+        onCameraRotateSpeedChange={uiControls.handleCameraRotateSpeedChange}
+        cameraZoomSpeed={uiControls.cameraZoomSpeed || 0.8}
+        onCameraZoomSpeedChange={uiControls.handleCameraZoomSpeedChange}
+        cameraPanSpeed={uiControls.cameraPanSpeed || 0.5}
+        onCameraPanSpeedChange={uiControls.handleCameraPanSpeedChange}
+        cameraAutoRotate={uiControls.cameraAutoRotate || false}
+        onToggleCameraAutoRotate={uiControls.handleToggleAutoRotate}
+        cameraFOV={uiControls.cameraFOV || 75}
+        onCameraFOVChange={uiControls.handleCameraFOVChange}
+        shadowsEnabled={uiControls.shadowsEnabled !== false}
+        onToggleShadows={uiControls.handleToggleShadows}
         onResetCamera={stopFollowing}
         onToggleUI={() => setUiHidden(true)}
         onOpenCreateModal={() => {
@@ -186,13 +200,6 @@ export default function SolarSystem() {
           loading={taskOps.creating}
         />
       )}
-
-      <footer className={`nasa-footer ${uiHidden ? "ui-hidden" : ""}`}>
-        <div className="footer-content">
-          <strong style={{ color: "var(--accent-1)" }}>LIGHT FOCUS</strong> —
-          Bullseye Task Manager v{info.version}
-        </div>
-      </footer>
     </>
   );
 }

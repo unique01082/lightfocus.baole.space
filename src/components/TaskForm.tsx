@@ -37,60 +37,43 @@ export default function TaskForm({
   submitLabel,
   loading = false,
 }: TaskFormProps) {
-  const inputStyle: React.CSSProperties = {
-    width: "100%",
-    background: "rgba(0,0,0,0.3)",
-    border: "1px solid rgba(255,255,255,0.1)",
-    borderRadius: 6,
-    padding: "8px 12px",
-    color: "var(--text-primary)",
-    fontFamily: "'Space Grotesk', sans-serif",
-    fontSize: 13,
-    outline: "none",
-  };
-
-  const labelStyle: React.CSSProperties = {
-    display: "block",
-    marginBottom: 4,
-    fontSize: 11,
-    color: "var(--accent-1)",
-    fontWeight: 600,
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
-    fontFamily: "'Space Grotesk', sans-serif",
-  };
-
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+    <div className="flex flex-col gap-4">
       <div>
-        <label style={labelStyle}>Task Title</label>
+        <label className="block mb-1 text-xs font-semibold text-purple-300 uppercase tracking-wider">
+          Task Title
+        </label>
         <input
           type="text"
           value={title}
           onChange={(e) => onTitleChange(e.target.value)}
           placeholder="Enter task title..."
-          style={inputStyle}
+          className="w-full bg-black/30 border border-purple-400/30 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-400/50 focus:border-transparent transition-all duration-200"
           autoFocus
         />
       </div>
 
       <div>
-        <label style={labelStyle}>Description</label>
+        <label className="block mb-1 text-xs font-semibold text-purple-300 uppercase tracking-wider">
+          Description
+        </label>
         <textarea
           value={desc}
           onChange={(e) => onDescChange(e.target.value)}
           placeholder="Describe the task..."
-          style={{ ...inputStyle, minHeight: 60, resize: "vertical" }}
+          className="w-full bg-black/30 border border-purple-400/30 rounded-lg px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-purple-400/50 focus:border-transparent transition-all duration-200 min-h-[60px] resize-y"
         />
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+      <div className="grid grid-cols-2 gap-3">
         <div>
-          <label style={labelStyle}>Priority</label>
+          <label className="block mb-1 text-xs font-semibold text-purple-300 uppercase tracking-wider">
+            Priority
+          </label>
           <select
             value={priority}
             onChange={(e) => onPriorityChange(e.target.value as Priority)}
-            style={inputStyle}
+            className="w-full bg-black/30 border border-purple-400/30 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-400/50 focus:border-transparent transition-all duration-200 cursor-pointer"
           >
             <option value="critical">Critical</option>
             <option value="high">High</option>
@@ -100,13 +83,15 @@ export default function TaskForm({
           </select>
         </div>
         <div>
-          <label style={labelStyle}>Complexity (1-5)</label>
+          <label className="block mb-1 text-xs font-semibold text-purple-300 uppercase tracking-wider">
+            Complexity (1-5)
+          </label>
           <select
             value={complexity}
             onChange={(e) =>
               onComplexityChange(parseInt(e.target.value) as Complexity)
             }
-            style={inputStyle}
+            className="w-full bg-black/30 border border-purple-400/30 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-400/50 focus:border-transparent transition-all duration-200 cursor-pointer"
           >
             <option value={1}>1 — Simple</option>
             <option value={2}>2 — Easy</option>
@@ -117,54 +102,48 @@ export default function TaskForm({
         </div>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+      <div className="grid grid-cols-2 gap-3">
         <div>
-          <label style={labelStyle}>Due Date</label>
+          <label className="block mb-1 text-xs font-semibold text-purple-300 uppercase tracking-wider">
+            Due Date
+          </label>
           <input
             type="date"
             value={dueDate}
             onChange={(e) => onDueDateChange(e.target.value)}
-            style={inputStyle}
+            className="w-full bg-black/30 border border-purple-400/30 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-purple-400/50 focus:border-transparent transition-all duration-200 cursor-pointer"
           />
         </div>
         <div>
-          <label style={labelStyle}>Planet Color</label>
-          <div style={{ display: "flex", gap: 6, alignItems: "center" }}>
+          <label className="block mb-1 text-xs font-semibold text-purple-300 uppercase tracking-wider">
+            Planet Color
+          </label>
+          <div className="flex gap-2 items-center">
             <input
               type="color"
               value={color}
               onChange={(e) => onColorChange(e.target.value)}
-              style={{
-                width: 40,
-                height: 34,
-                border: "none",
-                borderRadius: 4,
-                cursor: "pointer",
-              }}
+              className="w-10 h-9 border-none rounded cursor-pointer bg-transparent"
             />
-            <span style={{ fontSize: 12, color: "var(--text-muted)" }}>
-              {color}
-            </span>
+            <span className="text-xs text-gray-400 font-mono">{color}</span>
           </div>
         </div>
       </div>
 
-      <div style={{ display: "flex", gap: 10, marginTop: 6 }}>
+      <div className="flex gap-3 mt-2">
         <button
-          className="follow-planet-btn"
-          style={{ flex: 1 }}
-          onClick={onSubmit}
-          disabled={loading}
-        >
-          {loading ? '⏳ Loading...' : submitLabel}
-        </button>
-        <button
-          className="follow-planet-btn"
-          style={{ flex: 0.5, background: "var(--button-secondary)" }}
+          className="flex-[0.5] bg-gray-700/50 hover:bg-gray-600/50 text-white font-semibold py-2.5 px-4 rounded-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           onClick={onCancel}
           disabled={loading}
         >
           Cancel
+        </button>
+        <button
+          className="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-semibold py-2.5 px-4 rounded-lg transition-all duration-300 transform hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/50 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+          onClick={onSubmit}
+          disabled={loading}
+        >
+          {loading ? '⏳ Loading...' : submitLabel}
         </button>
       </div>
     </div>

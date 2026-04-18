@@ -80,11 +80,11 @@ export default function TaskEditForm({
       />
 
       <div className="flex gap-1.5 mt-1.5">
-        <Button variant="primary" size="sm" onClick={onSave} fullWidth>
-          💾 Save
-        </Button>
         <Button variant="secondary" size="sm" onClick={onCancel} fullWidth>
           ✖ Cancel
+        </Button>
+        <Button variant="primary" size="sm" onClick={onSave} fullWidth>
+          💾 Save
         </Button>
       </div>
     </div>

@@ -1,8 +1,8 @@
 import { useCallback } from "react";
 import * as THREE from "three";
 import type {
-    BullseyeRank,
-    Complexity
+  BullseyeRank,
+  Complexity
 } from "../../../types/task";
 import { groupByOrbit, rankTasks } from "../../../utils/ranking";
 import type { SceneData } from "./useThreeScene";
@@ -174,8 +174,8 @@ export function usePlanetManager(
           moonLabel.style.display = "none";
           document.body.appendChild(moonLabel);
 
-          // Varied speed: 0.015 – 0.045
-          const moonSpeed = 0.015 + seededRand(10) * 0.03;
+          // Varied speed: 0.005 – 0.015 (slower than before)
+          const moonSpeed = 0.005 + seededRand(10) * 0.01;
 
           moons.push({
             subtask: sub,
@@ -202,6 +202,118 @@ export function usePlanetManager(
         });
       });
     });
+
+    // Create asteroid belt for completed tasks
+    const completedTasks = tasks.filter((t) => t.completed);
+    const asteroidBeltDistance = 95; // Slightly closer so they're visible
+    const asteroidBeltWidth = 18; // Spread of the belt
+
+    // Add fake/decorative asteroids to the belt (small, rocky grey) - they orbit!
+    const numFakeAsteroids = 120; // Significantly more for visibility
+    const fakeAsteroidPivots: { pivot: THREE.Object3D; speed: number }[] = [];
+
+    for (let i = 0; i < numFakeAsteroids; i++) {
+      const angle = Math.random() * Math.PI * 2;
+      const distance = asteroidBeltDistance + (Math.random() - 0.5) * asteroidBeltWidth;
+
+      // Varied sizes for more natural look
+      const asteroidSize = 0.25 + Math.random() * 0.45; // 0.25-0.7 (more visible)
+      // Varied rock colors: grey, brown-grey, blue-grey
+      const grayVal = 0.35 + Math.random() * 0.2;
+      const asteroidColor = new THREE.Color(
+        grayVal + (Math.random() - 0.5) * 0.08,
+        grayVal + (Math.random() - 0.5) * 0.05,
+        grayVal + (Math.random() - 0.5) * 0.1,
+      );
+
+      // Mix of geometry types for visual variety
+      let geo: THREE.BufferGeometry;
+      const shape = Math.floor(Math.random() * 3);
+      if (shape === 0) {
+        geo = new THREE.DodecahedronGeometry(asteroidSize, 0);
+      } else if (shape === 1) {
+        geo = new THREE.OctahedronGeometry(asteroidSize, 0);
+      } else {
+        geo = new THREE.IcosahedronGeometry(asteroidSize, 0);
+      }
+
+      const mat = new THREE.MeshStandardMaterial({
+        color: asteroidColor,
+        metalness: 0.15,
+        roughness: 0.85,
+        emissive: asteroidColor.clone().multiplyScalar(0.15), // Slightly emissive
+        emissiveIntensity: 0.3,
+      });
+      const mesh = new THREE.Mesh(geo, mat);
+      mesh.castShadow = true;
+
+      const pivot = new THREE.Object3D();
+      pivot.add(mesh);
+      mesh.position.x = distance;
+      // Slight vertical scatter for 3D depth
+      mesh.position.y = (Math.random() - 0.5) * 3;
+      mesh.rotation.set(
+        Math.random() * Math.PI,
+        Math.random() * Math.PI,
+        Math.random() * Math.PI
+      );
+      pivot.rotation.y = angle;
+      sd.scene.add(pivot);
+
+      // Store fake asteroids so they can orbit too
+      const speed = 0.0001 + Math.random() * 0.0002; // Slow orbit
+      fakeAsteroidPivots.push({ pivot, speed });
+    }
+
+    // Store fake asteroids in scene data for animation
+    (sd as any).fakeAsteroidPivots = fakeAsteroidPivots;
+
+    // Add completed tasks as larger, distinctive asteroids
+    if (completedTasks.length > 0) {
+      completedTasks.forEach((task) => {
+        const angle = Math.random() * Math.PI * 2;
+        const distance = asteroidBeltDistance + (Math.random() - 0.5) * asteroidBeltWidth;
+
+        // Larger, more visible asteroids with greenish tint
+        const asteroidSize = 0.8 + Math.random() * 0.5; // Noticeably bigger (0.8-1.3)
+        const asteroidColor = new THREE.Color(0.3, 0.6, 0.45); // Greenish (completed)
+
+        const geo = new THREE.DodecahedronGeometry(asteroidSize, 0);
+        const mat = new THREE.MeshStandardMaterial({
+          color: asteroidColor,
+          metalness: 0.2,
+          roughness: 0.75,
+          emissive: new THREE.Color(0.1, 0.35, 0.2),
+          emissiveIntensity: 0.6,
+        });
+        const mesh = new THREE.Mesh(geo, mat);
+        mesh.castShadow = true;
+
+        const pivot = new THREE.Object3D();
+        pivot.add(mesh);
+        mesh.position.x = distance;
+        mesh.position.y = (Math.random() - 0.5) * 3;
+        mesh.rotation.set(
+          Math.random() * Math.PI,
+          Math.random() * Math.PI,
+          Math.random() * Math.PI
+        );
+        pivot.rotation.y = angle;
+        sd.scene.add(pivot);
+
+        const speed = 0.0002 + Math.random() * 0.0002;
+
+        sd.planets.push({
+          task,
+          mesh,
+          pivot,
+          speed,
+          moons: [],
+          orbit: null as any,
+          label: null as any,
+        });
+      });
+    }
   }, [sceneDataRef, tasks]);
 
   return { updatePlanets };

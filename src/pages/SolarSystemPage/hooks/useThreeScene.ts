@@ -66,7 +66,7 @@ export function useThreeScene() {
     // Scene setup
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x000814);
-    scene.fog = new THREE.Fog(0x000814, 180, 250);
+    scene.fog = new THREE.Fog(0x000814, 200, 350);
 
     // Camera setup
     const camera = new THREE.PerspectiveCamera(

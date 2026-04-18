@@ -28,6 +28,32 @@ export function useUIControls(sceneDataRef: React.MutableRefObject<SceneData | n
   const [animationSpeed, setAnimationSpeed] = useState(0.4);
   const [manualBloomStrength, setManualBloomStrength] = useState(0.5);
 
+  // Camera controls
+  const [cameraRotateSpeed, setCameraRotateSpeed] = useLocalStorageState(
+    "solarSystem.cameraRotateSpeed",
+    { defaultValue: 0.3 },
+  );
+  const [cameraZoomSpeed, setCameraZoomSpeed] = useLocalStorageState(
+    "solarSystem.cameraZoomSpeed",
+    { defaultValue: 0.8 },
+  );
+  const [cameraPanSpeed, setCameraPanSpeed] = useLocalStorageState(
+    "solarSystem.cameraPanSpeed",
+    { defaultValue: 0.5 },
+  );
+  const [cameraAutoRotate, setCameraAutoRotate] = useLocalStorageState(
+    "solarSystem.cameraAutoRotate",
+    { defaultValue: false },
+  );
+  const [cameraFOV, setCameraFOV] = useLocalStorageState(
+    "solarSystem.cameraFOV",
+    { defaultValue: 75 },
+  );
+  const [shadowsEnabled, setShadowsEnabled] = useLocalStorageState(
+    "solarSystem.shadowsEnabled",
+    { defaultValue: true },
+  );
+
   const handleTogglePause = () => {
     const sd = sceneDataRef.current;
     if (sd) {
@@ -95,6 +121,50 @@ export function useUIControls(sceneDataRef: React.MutableRefObject<SceneData | n
     });
   };
 
+  const handleCameraRotateSpeedChange = (speed: number) => {
+    const sd = sceneDataRef.current;
+    if (!sd) return;
+    sd.controls.rotateSpeed = speed;
+    setCameraRotateSpeed(speed);
+  };
+
+  const handleCameraZoomSpeedChange = (speed: number) => {
+    const sd = sceneDataRef.current;
+    if (!sd) return;
+    sd.controls.zoomSpeed = speed;
+    setCameraZoomSpeed(speed);
+  };
+
+  const handleCameraPanSpeedChange = (speed: number) => {
+    const sd = sceneDataRef.current;
+    if (!sd) return;
+    sd.controls.panSpeed = speed;
+    setCameraPanSpeed(speed);
+  };
+
+  const handleToggleAutoRotate = () => {
+    const sd = sceneDataRef.current;
+    if (!sd) return;
+    sd.controls.autoRotate = !sd.controls.autoRotate;
+    setCameraAutoRotate(sd.controls.autoRotate);
+  };
+
+  const handleCameraFOVChange = (fov: number) => {
+    const sd = sceneDataRef.current;
+    if (!sd) return;
+    sd.camera.fov = fov;
+    sd.camera.updateProjectionMatrix();
+    setCameraFOV(fov);
+  };
+
+  const handleToggleShadows = () => {
+    const sd = sceneDataRef.current;
+    if (!sd) return;
+    const newValue = !shadowsEnabled;
+    sd.renderer.shadowMap.enabled = newValue;
+    setShadowsEnabled(newValue);
+  };
+
   return {
     isPaused,
     animationSpeed,
@@ -104,6 +174,12 @@ export function useUIControls(sceneDataRef: React.MutableRefObject<SceneData | n
     showOrbitsState,
     showMoonsState,
     bloomManualState,
+    cameraRotateSpeed,
+    cameraZoomSpeed,
+    cameraPanSpeed,
+    cameraAutoRotate,
+    cameraFOV,
+    shadowsEnabled,
     setIsPaused,
     setShowLabelsState,
     setShowMoonLabelsState,
@@ -115,5 +191,11 @@ export function useUIControls(sceneDataRef: React.MutableRefObject<SceneData | n
     handleToggleMoonLabels,
     handleToggleOrbits,
     handleToggleMoons,
+    handleCameraRotateSpeedChange,
+    handleCameraZoomSpeedChange,
+    handleCameraPanSpeedChange,
+    handleToggleAutoRotate,
+    handleCameraFOVChange,
+    handleToggleShadows,
   };
 }

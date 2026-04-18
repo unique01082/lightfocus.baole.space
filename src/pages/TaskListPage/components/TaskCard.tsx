@@ -35,32 +35,32 @@ export default function TaskCard({
   onAddSubtask,
 }: TaskCardProps) {
   return (
-    <div className={`task-card ${task.completed ? 'completed' : ''}`}>
-      <div className="task-card-header">
-        <div className="task-card-left">
+    <div className={`bg-gradient-to-br from-purple-900/40 to-indigo-900/40 backdrop-blur-xl border border-purple-400/30 rounded-2xl p-6 shadow-xl shadow-purple-500/10 hover:shadow-purple-500/20 transition-all duration-300 ${task.completed ? 'opacity-60' : ''}`}>
+      <div className="flex justify-between items-start gap-4 mb-4">
+        <div className="flex items-start gap-3 flex-1">
           <button
-            className="task-check"
+            className="w-6 h-6 rounded border-2 flex items-center justify-center transition-all hover:scale-110 flex-shrink-0 mt-1"
             onClick={() => onToggleComplete(task.id)}
             style={{ borderColor: task.color }}
           >
-            {task.completed && '✓'}
+            {task.completed && <span className="text-sm">✓</span>}
           </button>
-          <div>
+          <div className="flex-1">
             <div
-              className="task-card-title"
+              className="font-semibold text-purple-100 flex items-center gap-2"
               style={{ textDecoration: task.completed ? 'line-through' : 'none' }}
             >
-              <span className="planet-dot" style={{ backgroundColor: task.color }} />
+              <span className="inline-block w-3 h-3 rounded-full" style={{ backgroundColor: task.color }} />
               {task.title}
             </div>
-            {task.description && (
-              <div className="task-card-desc">{task.description}</div>
+            {task.description && typeof task.description === 'string' && (
+              <div className="text-purple-200/70 text-sm mt-1">{task.description}</div>
             )}
           </div>
         </div>
-        <div className="task-card-right">
+        <div className="flex items-center gap-2 flex-shrink-0">
           <span
-            className="rank-badge"
+            className="px-3 py-1 rounded-full text-xs font-bold text-white shadow-lg"
             style={{
               background: `linear-gradient(135deg, ${task.color}, ${task.color}88)`,
             }}
@@ -68,7 +68,7 @@ export default function TaskCard({
             Ring {task.rank}
           </span>
           <span
-            className="priority-pill"
+            className="px-2 py-1 rounded text-xs font-semibold"
             style={{
               backgroundColor: PRIORITY_COLORS[task.priority] + '33',
               color: PRIORITY_COLORS[task.priority],
@@ -77,7 +77,7 @@ export default function TaskCard({
             {task.priority}
           </span>
           <button
-            className="delete-btn"
+            className="w-8 h-8 rounded-lg bg-red-500/20 hover:bg-red-500/40 border border-red-500/30 transition-all flex items-center justify-center text-sm"
             onClick={() => onDelete(task.id)}
             title="Delete task"
           >
@@ -86,29 +86,34 @@ export default function TaskCard({
         </div>
       </div>
 
-      <div className="task-card-meta">
+      <div className="flex flex-wrap gap-3 text-xs text-purple-300/80 mb-4">
         <span>🧩 C{task.complexity}</span>
-        {task.dueDate && (
+        {task.dueDate && typeof task.dueDate === 'string' && (
           <span>📅 {new Date(task.dueDate).toLocaleDateString()}</span>
         )}
         <span>
-          🌙 {task.subtasks.filter((s) => s.completed).length}/
-          {task.subtasks.length} subtasks
+          🌙 {task.subtasks?.filter((s) => s.completed).length || 0}/
+          {task.subtasks?.length || 0} subtasks
         </span>
         <span>{ORBIT_LABELS[task.rank]}</span>
       </div>
 
-      {task.subtasks.length > 0 && (
-        <div className="subtask-list">
+      {task.subtasks && task.subtasks.length > 0 && (
+        <div className="space-y-2 mb-4">
           {task.subtasks.map((sub) => (
-            <div key={sub.id} className="subtask-item">
+            <div key={sub.id} className="flex items-center gap-2">
               <button
-                className={`subtask-check ${sub.completed ? 'done' : ''}`}
+                className={`w-4 h-4 rounded border flex items-center justify-center transition-all text-xs ${
+                  sub.completed
+                    ? 'bg-green-500/30 border-green-500 text-green-300'
+                    : 'border-purple-400/30 hover:border-purple-400'
+                }`}
                 onClick={() => onToggleSubtask(task.id, sub.id)}
               >
                 {sub.completed ? '✓' : ''}
               </button>
               <span
+                className="text-sm text-purple-100"
                 style={{
                   textDecoration: sub.completed ? 'line-through' : 'none',
                   opacity: sub.completed ? 0.5 : 1,

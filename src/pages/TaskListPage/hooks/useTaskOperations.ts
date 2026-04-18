@@ -28,10 +28,10 @@ export function useTaskOperations(
     async (taskData: Partial<Task>) => {
       const createData: LF.CreateTaskDto = {
         title: taskData.title || 'New Task',
-        description: taskData.description || '',
+        description: typeof taskData.description === 'string' ? taskData.description : undefined,
         priority: taskData.priority || 'medium',
         complexity: taskData.complexity || 3,
-        dueDate: taskData.dueDate ?? undefined,
+        dueDate: typeof taskData.dueDate === 'string' ? taskData.dueDate : undefined,
         color: taskData.color || getRandomColor(),
       };
       const newTask = (await tasksApi.tasksControllerCreate(
@@ -80,7 +80,7 @@ export function useTaskOperations(
       const task = tasks.find((t) => t.id === taskId);
       if (!task) return null;
 
-      const subtask = task.subtasks.find((s) => s.id === subtaskId);
+      const subtask = task.subtasks?.find((s) => s.id === subtaskId);
       if (!subtask) return null;
 
       const updatedSubtask = (await subtasksApi.subtasksControllerUpdate(
@@ -94,7 +94,7 @@ export function useTaskOperations(
             if (t.id !== taskId) return t;
             return {
               ...t,
-              subtasks: t.subtasks.map((s) =>
+              subtasks: t.subtasks?.map((s) =>
                 s.id === subtaskId ? updatedSubtask : s
               ),
             };
@@ -120,7 +120,7 @@ export function useTaskOperations(
             if (t.id !== taskId) return t;
             return {
               ...t,
-              subtasks: [...t.subtasks, newSubtask],
+              subtasks: [...(t.subtasks || []), newSubtask],
             };
           })
         );

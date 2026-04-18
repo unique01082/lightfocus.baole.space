@@ -29,6 +29,14 @@ export function useSceneAnimation(
           });
         });
 
+        // Animate fake asteroids orbiting in the belt
+        const fakeAsteroidPivots = (sd as any).fakeAsteroidPivots;
+        if (fakeAsteroidPivots) {
+          fakeAsteroidPivots.forEach((asteroid: { pivot: THREE.Object3D; speed: number }) => {
+            asteroid.pivot.rotation.y += asteroid.speed * spd;
+          });
+        }
+
         // Rotate distant stars
         const distantStars = sd.scene.children.find(
           (child) => child instanceof THREE.Points,
@@ -40,13 +48,16 @@ export function useSceneAnimation(
 
       // Update planet labels
       if (sd.showLabels) {
+        const canvas = sd.renderer.domElement;
+        const rect = canvas.getBoundingClientRect();
+
         sd.planets.forEach((p) => {
           if (!p.label) return;
           const vec = new THREE.Vector3();
           p.mesh.getWorldPosition(vec);
           vec.project(sd.camera);
-          const x = (vec.x * 0.5 + 0.5) * window.innerWidth;
-          const y = (vec.y * -0.5 + 0.5) * window.innerHeight;
+          const x = rect.left + (vec.x * 0.5 + 0.5) * rect.width;
+          const y = rect.top + (vec.y * -0.5 + 0.5) * rect.height;
           p.label.style.left = x + "px";
           p.label.style.top = y - 20 + "px";
           p.label.style.display = vec.z > 1 ? "none" : "block";
@@ -55,14 +66,17 @@ export function useSceneAnimation(
 
       // Update moon labels
       if (sd.showMoonLabels) {
+        const canvas = sd.renderer.domElement;
+        const rect = canvas.getBoundingClientRect();
+
         sd.planets.forEach((p) => {
           p.moons.forEach((m) => {
             if (!m.label) return;
             const vec = new THREE.Vector3();
             m.mesh.getWorldPosition(vec);
             vec.project(sd.camera);
-            const x = (vec.x * 0.5 + 0.5) * window.innerWidth;
-            const y = (vec.y * -0.5 + 0.5) * window.innerHeight;
+            const x = rect.left + (vec.x * 0.5 + 0.5) * rect.width;
+            const y = rect.top + (vec.y * -0.5 + 0.5) * rect.height;
             m.label.style.left = x + "px";
             m.label.style.top = y - 12 + "px";
             m.label.style.display = vec.z > 1 ? "none" : "block";

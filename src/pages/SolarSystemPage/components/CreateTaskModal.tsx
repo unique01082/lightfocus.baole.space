@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import TaskForm from '../../../components/TaskForm';
 import type { Complexity, Priority } from '../../../types/task';
 
@@ -36,65 +37,71 @@ export default function CreateTaskModal({
   onSubmit,
   loading = false,
 }: CreateTaskModalProps) {
+  // Handle escape key to close modal
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleEscape);
+    return () => window.removeEventListener('keydown', handleEscape);
+  }, [onClose]);
+
   return (
     <div
-      className="modal-overlay"
-      onClick={onClose}
+      className="fixed inset-0 flex items-center justify-center z-[9999] p-4"
       style={{
-        position: 'fixed',
-        inset: 0,
-        background: 'rgba(0,0,0,0.7)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 9999,
+        backdropFilter: 'blur(8px)',
+        background: 'rgba(0, 0, 0, 0.3)',
+        animation: 'fadeIn 0.2s ease-out'
       }}
+      onClick={onClose}
     >
       <div
-        className="modal-content"
+        className="max-w-lg w-full max-h-[85vh]"
         onClick={(e) => e.stopPropagation()}
         style={{
-          background: 'var(--bg-panel)',
-          border: '1px solid var(--border-color)',
-          borderRadius: 12,
-          padding: 30,
-          maxWidth: 500,
-          width: '90%',
-          maxHeight: '80vh',
-          overflowY: 'auto',
-          boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+          animation: 'slideIn 0.3s ease-out'
         }}
       >
-        <div
-          style={{
-            marginBottom: 20,
-            fontSize: 16,
-            fontWeight: 700,
-            color: 'var(--accent-1)',
-            textAlign: 'center',
-            letterSpacing: 1,
-          }}
-        >
-          🪐 CREATE NEW PLANET
+        {/* Minimal header */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="text-2xl font-bold bg-gradient-to-r from-purple-300 via-pink-300 to-purple-300
+            bg-clip-text text-transparent tracking-wide">
+            🪐 CREATE NEW PLANET
+          </div>
+          <button
+            className="w-10 h-10 rounded-full bg-black/40 hover:bg-black/60 border border-white/20
+              backdrop-blur-sm transition-all flex items-center justify-center text-white text-xl
+              hover:scale-110 hover:border-white/40"
+            onClick={onClose}
+          >
+            ✕
+          </button>
         </div>
-        <TaskForm
-          title={formTitle}
-          desc={formDesc}
-          priority={formPriority}
-          complexity={formComplexity}
-          dueDate={formDueDate}
-          color={formColor}
-          onTitleChange={setFormTitle}
-          onDescChange={setFormDesc}
-          onPriorityChange={setFormPriority}
-          onComplexityChange={setFormComplexity}
-          onDueDateChange={setFormDueDate}
-          onColorChange={setFormColor}
-          onSubmit={onSubmit}
-          onCancel={onClose}
-          submitLabel="🚀 CREATE PLANET"
-          loading={loading}
-        />
+
+        {/* Form with minimal background */}
+        <div className="rounded-2xl p-6 shadow-lg">
+          <TaskForm
+            title={formTitle}
+            desc={formDesc}
+            priority={formPriority}
+            complexity={formComplexity}
+            dueDate={formDueDate}
+            color={formColor}
+            onTitleChange={setFormTitle}
+            onDescChange={setFormDesc}
+            onPriorityChange={setFormPriority}
+            onComplexityChange={setFormComplexity}
+            onDueDateChange={setFormDueDate}
+            onColorChange={setFormColor}
+            onSubmit={onSubmit}
+            onCancel={onClose}
+            submitLabel="🚀 CREATE PLANET"
+            loading={loading}
+          />
+        </div>
       </div>
     </div>
   );

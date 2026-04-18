@@ -188,12 +188,6 @@ export default function SolarSystem() {
         />
       )}
 
-      <footer className={`nasa-footer ${uiHidden ? "ui-hidden" : ""}`}>
-        <div className="footer-content">
-          <strong style={{ color: "var(--accent-1)" }}>LIGHT FOCUS</strong> —
-          Bullseye Task Manager
-        </div>
-      </footer>
     </>
   );
 }

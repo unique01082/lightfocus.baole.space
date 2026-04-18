@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Button, Checkbox, Panel, Slider } from '../../../components/ui';
 
 interface ControlsPanelProps {
@@ -17,6 +18,18 @@ interface ControlsPanelProps {
   onToggleOrbits: () => void;
   showMoons: boolean;
   onToggleMoons: () => void;
+  cameraRotateSpeed: number;
+  onCameraRotateSpeedChange: (speed: number) => void;
+  cameraZoomSpeed: number;
+  onCameraZoomSpeedChange: (speed: number) => void;
+  cameraPanSpeed: number;
+  onCameraPanSpeedChange: (speed: number) => void;
+  cameraAutoRotate: boolean;
+  onToggleCameraAutoRotate: () => void;
+  cameraFOV: number;
+  onCameraFOVChange: (fov: number) => void;
+  shadowsEnabled: boolean;
+  onToggleShadows: () => void;
   onResetCamera: () => void;
   onToggleUI: () => void;
   onOpenCreateModal: () => void;
@@ -39,22 +52,41 @@ export default function ControlsPanel({
   onToggleOrbits,
   showMoons,
   onToggleMoons,
+  cameraRotateSpeed,
+  onCameraRotateSpeedChange,
+  cameraZoomSpeed,
+  onCameraZoomSpeedChange,
+  cameraPanSpeed,
+  onCameraPanSpeedChange,
+  cameraAutoRotate,
+  onToggleCameraAutoRotate,
+  cameraFOV,
+  onCameraFOVChange,
+  shadowsEnabled,
+  onToggleShadows,
   onResetCamera,
   onToggleUI,
   onOpenCreateModal,
 }: ControlsPanelProps) {
+  const [minimized, setMinimized] = useState(false);
+
   return (
     <Panel
-      className={`${uiHidden ? 'ui-hidden' : ''} w-60 max-h-[calc(100vh-100px)] overflow-y-auto`}
+      className={`${uiHidden ? 'ui-hidden' : ''} ${minimized ? 'w-auto' : 'w-60'} ${minimized ? 'max-h-auto' : 'max-h-[calc(100vh-100px)]'} transition-all duration-300`}
       style={{ top: 20, left: 20 }}
     >
-      <div className="px-2 py-2 bg-gradient-to-br from-accent-1 to-accent-2 border-b border-panel -m-0 mb-4 rounded-t-lg">
+      <div
+        className="px-2 py-2 bg-gradient-to-br from-accent-1 to-accent-2 border-b border-panel -m-0 mb-4 rounded-t-lg cursor-pointer hover:opacity-90 transition-opacity flex items-center justify-between"
+        onClick={() => setMinimized(!minimized)}
+      >
         <h3 className="m-0 font-space font-bold text-[11px] text-white uppercase tracking-widest">
           MISSION CONTROL
         </h3>
+        <span className="text-white text-xs">{minimized ? '▼' : '▲'}</span>
       </div>
 
-      <div className="px-2 pb-2 space-y-4">
+      {!minimized && (
+        <div className="px-2 pb-2 space-y-4">
         <div className="control-group">
           <div className="flex gap-2">
             <Button size="sm" variant="control" onClick={onTogglePause} fullWidth>
@@ -100,22 +132,22 @@ export default function ControlsPanel({
             <Checkbox
               label="Planet Labels"
               checked={showLabels}
-              onChange={onToggleLabels}
+              onChange={() => onToggleLabels()}
             />
             <Checkbox
               label="Moon Labels"
               checked={showMoonLabels}
-              onChange={onToggleMoonLabels}
+              onChange={() => onToggleMoonLabels()}
             />
             <Checkbox
               label="Orbit Rings"
               checked={showOrbits}
-              onChange={onToggleOrbits}
+              onChange={() => onToggleOrbits()}
             />
             <Checkbox
               label="Moons"
               checked={showMoons}
-              onChange={onToggleMoons}
+              onChange={() => onToggleMoons()}
             />
           </div>
         </div>
@@ -131,7 +163,64 @@ export default function ControlsPanel({
             </Button>
           </div>
         </div>
+
+        <div className="control-group">
+          <label className="control-label">Camera Controls</label>
+          <Slider
+            label="Rotate Speed"
+            min={0.1}
+            max={2}
+            step={0.1}
+            value={cameraRotateSpeed}
+            onChange={(e) => onCameraRotateSpeedChange(parseFloat(e.target.value))}
+            valueFormatter={(v) => v.toFixed(1)}
+            className="mb-2"
+          />
+          <Slider
+            label="Zoom Speed"
+            min={0.1}
+            max={2}
+            step={0.1}
+            value={cameraZoomSpeed}
+            onChange={(e) => onCameraZoomSpeedChange(parseFloat(e.target.value))}
+            valueFormatter={(v) => v.toFixed(1)}
+            className="mb-2"
+          />
+          <Slider
+            label="Pan Speed"
+            min={0.1}
+            max={2}
+            step={0.1}
+            value={cameraPanSpeed}
+            onChange={(e) => onCameraPanSpeedChange(parseFloat(e.target.value))}
+            valueFormatter={(v) => v.toFixed(1)}
+            className="mb-2"
+          />
+          <Slider
+            label="Field of View"
+            min={30}
+            max={120}
+            step={5}
+            value={cameraFOV}
+            onChange={(e) => onCameraFOVChange(parseFloat(e.target.value))}
+            valueFormatter={(v) => `${v}°`}
+            className="mb-3"
+          />
+          <div className="space-y-2">
+            <Checkbox
+              label="Auto Rotate"
+              checked={cameraAutoRotate}
+              onChange={onToggleCameraAutoRotate}
+            />
+            <Checkbox
+              label="Shadows"
+              checked={shadowsEnabled}
+              onChange={onToggleShadows}
+            />
+          </div>
+        </div>
       </div>
+      )}
     </Panel>
   );
 }

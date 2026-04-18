@@ -1,9 +1,9 @@
-import { useLocalStorageState, useRequest, useToggle } from 'ahooks';
+import { useLocalStorageState, useToggle } from 'ahooks';
 import { useState } from 'react';
 import { Link } from 'react-router';
+import ViewModeSwitcher from '../components/ViewModeSwitcher';
+import { useTasks } from '../contexts/TaskContext';
 import { useAuth } from '../contexts/useAuth';
-import { subtasks as subtasksApi, tasks as tasksApi } from '../services/lf';
-import type { LF } from '../services/lf/typings';
 import type { Complexity, Priority } from '../types/task';
 import { getRandomColor } from '../utils/colors';
 import { rankTasks } from '../utils/ranking';
@@ -13,6 +13,17 @@ import TaskFilters from './TaskListPage/components/TaskFilters';
 
 export default function TaskListPage() {
   const { user, loading: authLoading } = useAuth();
+  const {
+    tasks,
+    loading: loadingTasks,
+    createTask: createTaskApi,
+    deleteTask: deleteTaskApi,
+    toggleTaskComplete,
+    addSubtask: addSubtaskApi,
+    toggleSubtaskComplete,
+  } = useTasks();
+
+  console.log('tasks :>> ', tasks);
 
   const [filter, setFilter] = useLocalStorageState<'all' | 'active' | 'completed'>('taskFilter', {
     defaultValue: 'all'
@@ -28,36 +39,21 @@ export default function TaskListPage() {
   const [formComplexity, setFormComplexity] = useState<Complexity>(3);
   const [formDueDate, setFormDueDate] = useState('');
   const [formColor, setFormColor] = useState(getRandomColor());
+  const [creating, setCreating] = useState(false);
 
-  const {
-    data,
-    mutate: setTasks,
-    loading: loadingTasks,
-  } = useRequest(
-    tasksApi.tasksControllerFindAll,
-    {
-      defaultParams: [{ limit: 1000, offset: 0 }],
-      ready: !authLoading && !!user,
-      refreshDeps: [user],
-    }
-  );
+  const handleCreate = async () => {
+    if (!formTitle.trim()) return;
 
-  const tasks = (data as any)?.data || [];
-
-  const { run: createTask, loading: creating } = useRequest(
-    async () => {
-      const createData: LF.CreateTaskDto = {
+    setCreating(true);
+    try {
+      await createTaskApi({
         title: formTitle.trim(),
         description: formDesc,
         priority: formPriority,
         complexity: formComplexity,
         dueDate: formDueDate || undefined,
         color: formColor,
-      };
-
-      await tasksApi.tasksControllerCreate(createData);
-      const response = await tasksApi.tasksControllerFindAll({ limit: 1000, offset: 0 });
-      setTasks(response);
+      });
 
       setFormTitle('');
       setFormDesc('');
@@ -66,77 +62,35 @@ export default function TaskListPage() {
       setFormDueDate('');
       setFormColor(getRandomColor());
       hideCreateForm();
-    },
-    { manual: true }
-  );
+    } finally {
+      setCreating(false);
+    }
+  };
 
-  const { run: toggleComplete, loading: togglingComplete } = useRequest(
-    async (id: string) => {
-      const task = tasks.find((t) => t.id === id);
-      if (!task) return;
+  const handleToggleComplete = async (id: string) => {
+    await toggleTaskComplete(id);
+  };
 
-      await tasksApi.tasksControllerUpdate({ id }, { completed: !task.completed });
-      const response = await tasksApi.tasksControllerFindAll({ limit: 1000, offset: 0 });
-      setTasks(response);
-    },
-    { manual: true }
-  );
+  const handleDeleteTask = async (id: string) => {
+    await deleteTaskApi(id);
+  };
 
-  const { run: deleteTask, loading: deleting } = useRequest(
-    async (id: string) => {
-      await tasksApi.tasksControllerRemove({ id });
-      const response = await tasksApi.tasksControllerFindAll({ limit: 1000, offset: 0 });
-      setTasks(response);
-    },
-    { manual: true }
-  );
+  const handleToggleSubtask = async (taskId: string, subtaskId: string) => {
+    await toggleSubtaskComplete(taskId, subtaskId);
+  };
 
-  const { run: toggleSubtask, loading: togglingSubtask } = useRequest(
-    async (taskId: string, subtaskId: string) => {
-      const task = tasks.find((t) => t.id === taskId);
-      if (!task) return;
-
-      const subtask = (task.subtasks || []).find((s: any) => s.id === subtaskId);
-      if (!subtask) return;
-
-      await subtasksApi.subtasksControllerUpdate(
-        { id: subtaskId, taskId },
-        { completed: !subtask.completed }
-      );
-
-      const response = await tasksApi.tasksControllerFindAll({ limit: 1000, offset: 0 });
-      setTasks(response);
-    },
-    { manual: true }
-  );
-
-  const { run: addSubtask, loading: addingSubtask } = useRequest(
-    async (taskId: string, title: string) => {
-      if (!title.trim()) return;
-
-      await subtasksApi.subtasksControllerCreate(
-        { taskId },
-        { title: title.trim() }
-      );
-
-      const response = await tasksApi.tasksControllerFindAll({ limit: 1000, offset: 0 });
-      setTasks(response);
-    },
-    { manual: true }
-  );
-
-  const handleCreate = () => {
-    if (!formTitle.trim()) return;
-    createTask();
+  const handleAddSubtask = async (taskId: string, title: string) => {
+    if (!title.trim()) return;
+    await addSubtaskApi(taskId, title.trim());
   };
 
   if (authLoading) {
     return (
-      <div className="page-container">
-        <div className="page-content">
-          <div className="empty-state">
-            <p className="empty-icon">⌛</p>
-            <p>Loading...</p>
+      <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-purple-950 to-pink-950 py-8 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center py-20">
+            <p className="text-6xl mb-4">⌛</p>
+            <p className="text-purple-200">Loading...</p>
           </div>
         </div>
       </div>
@@ -145,11 +99,11 @@ export default function TaskListPage() {
 
   if (!user) {
     return (
-      <div className="page-container">
-        <div className="page-content">
-          <div className="empty-state">
-            <p className="empty-icon">🔒</p>
-            <p>Please log in to view your tasks</p>
+      <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-purple-950 to-pink-950 py-8 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center py-20">
+            <p className="text-6xl mb-4">🔒</p>
+            <p className="text-purple-200">Please log in to view your tasks</p>
           </div>
         </div>
       </div>
@@ -158,11 +112,11 @@ export default function TaskListPage() {
 
   if (loadingTasks) {
     return (
-      <div className="page-container">
-        <div className="page-content">
-          <div className="empty-state">
-            <p className="empty-icon">⌛</p>
-            <p>Loading tasks...</p>
+      <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-purple-950 to-pink-950 py-8 px-4">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center py-20">
+            <p className="text-6xl mb-4">⌛</p>
+            <p className="text-purple-200">Loading tasks...</p>
           </div>
         </div>
       </div>
@@ -175,7 +129,7 @@ export default function TaskListPage() {
   } else if (filter === 'completed') {
     filtered = tasks.filter((t) => t.completed);
   }
-
+console.log('filtered :>> ', filtered, filter);
   let sorted = [...filtered];
   if (sortBy === 'rank') {
     const ranked = rankTasks(sorted as any);
@@ -201,13 +155,18 @@ export default function TaskListPage() {
   }
 
   return (
-    <div className="page-container">
-      <div className="page-content">
-        <div style={{ marginBottom: '20px', display: 'flex', gap: '10px', alignItems: 'center' }}>
-          <Link to="/" style={{ textDecoration: 'none', color: 'var(--accent)', fontSize: '14px' }}>
+    <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-purple-950 to-pink-950 py-8 px-4">
+      <ViewModeSwitcher />
+
+      <div className="max-w-7xl mx-auto mt-12">
+        <div className="mb-6 flex gap-3 items-center flex-wrap">
+          <Link to="/" className="text-purple-300 hover:text-purple-200 text-sm font-semibold transition-colors">
             🪐 Solar System
           </Link>
-          <button className="accent-btn" onClick={toggleCreateForm}>
+          <button
+            className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-semibold py-2 px-4 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-purple-500/50"
+            onClick={toggleCreateForm}
+          >
             {showCreateForm ? '✕ Cancel' : '➕ New Task'}
           </button>
         </div>
@@ -238,23 +197,26 @@ export default function TaskListPage() {
           onSortChange={setSortBy}
         />
 
-        <div className="tasklist-items">
+        <div className="space-y-4">
           {sorted.map((task) => (
             <TaskCard
               key={task.id}
               task={task as any}
-              onToggleComplete={toggleComplete}
-              onDelete={deleteTask}
-              onToggleSubtask={toggleSubtask}
-              onAddSubtask={addSubtask}
+              onToggleComplete={handleToggleComplete}
+              onDelete={handleDeleteTask}
+              onToggleSubtask={handleToggleSubtask}
+              onAddSubtask={handleAddSubtask}
             />
           ))}
 
           {sorted.length === 0 && (
-            <div className="empty-state">
-              <p className="empty-icon">🪐</p>
-              <p>No tasks found.</p>
-              <button className="accent-btn" onClick={toggleCreateForm}>
+            <div className="text-center py-20">
+              <p className="text-7xl mb-4">🪐</p>
+              <p className="text-purple-200 text-lg mb-6">No tasks found.</p>
+              <button
+                className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-lg hover:shadow-purple-500/50"
+                onClick={toggleCreateForm}
+              >
                 Create your first task
               </button>
             </div>
