@@ -1,26 +1,14 @@
-export interface Subtask {
-  id: string;
-  title: string;
-  completed: boolean;
-  createdAt: string;
-}
+// Use server types from API
+import type { LF } from '../services/lf/typings';
 
+// Re-export server types with app-friendly names
+export type Subtask = LF.SubtaskEntity;
+export type Task = LF.TaskEntity;
+export type RankedTask = LF.RankedTaskEntity;
+
+// Keep local type aliases for convenience
 export type Priority = 'critical' | 'high' | 'medium' | 'low' | 'none';
 export type Complexity = 1 | 2 | 3 | 4 | 5;
-
-export interface Task {
-  id: string;
-  title: string;
-  description: string;
-  priority: Priority;
-  complexity: Complexity;
-  dueDate: string | null; // ISO date string
-  completed: boolean;
-  subtasks: Subtask[];
-  color: string; // hex color for the planet
-  createdAt: string;
-  updatedAt: string;
-}
 
 /**
  * Bullseye Prioritization Ranking (1-7)
@@ -28,7 +16,3 @@ export interface Task {
  * 7 = farthest from sun (least important)
  */
 export type BullseyeRank = 1 | 2 | 3 | 4 | 5 | 6 | 7;
-
-export interface RankedTask extends Task {
-  rank: BullseyeRank;
-}

@@ -1,4 +1,4 @@
-import type { Task, Priority, BullseyeRank, RankedTask } from '../types/task';
+import type { BullseyeRank, Priority, RankedTask, Task } from '../types/task';
 
 /**
  * Calculate Bullseye rank (1-7) based on task properties.
@@ -40,11 +40,15 @@ function getPriorityScore(priority: Priority): number {
   }
 }
 
-function getUrgencyScore(dueDate: string | null): number {
+function getUrgencyScore(dueDate: Record<string, any> | undefined): number {
   if (!dueDate) return 1;
 
+  // Handle both string dates and Record types from server
+  const dateStr = typeof dueDate === 'string' ? dueDate : (dueDate as any);
+  if (!dateStr) return 1;
+
   const now = new Date();
-  const due = new Date(dueDate);
+  const due = new Date(dateStr);
   const diffMs = due.getTime() - now.getTime();
   const diffDays = diffMs / (1000 * 60 * 60 * 24);
 

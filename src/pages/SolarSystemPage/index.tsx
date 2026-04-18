@@ -1,19 +1,19 @@
 import { useRequest, useToggle } from "ahooks";
 import { useEffect, useState } from "react";
-import ControlsPanel from "../pages/SolarSystemPage/components/ControlsPanel";
-import CreateTaskModal from "../pages/SolarSystemPage/components/CreateTaskModal";
-import InfoPanel from "../pages/SolarSystemPage/components/InfoPanel";
-import TaskDetailPanel from "../pages/SolarSystemPage/components/TaskDetailPanel";
-import TaskListPanel from "../pages/SolarSystemPage/components/TaskListPanel";
-import { usePlanetManager } from "../pages/SolarSystemPage/hooks/usePlanetManager";
-import { useSceneAnimation } from "../pages/SolarSystemPage/hooks/useSceneAnimation";
-import { useSceneInteraction } from "../pages/SolarSystemPage/hooks/useSceneInteraction";
-import { useTaskOperations } from "../pages/SolarSystemPage/hooks/useTaskOperations";
-import { useThreeScene } from "../pages/SolarSystemPage/hooks/useThreeScene";
-import { useUIControls } from "../pages/SolarSystemPage/hooks/useUIControls";
-import { tasks as tasksApi } from "../services/lf";
-import type { Complexity, RankedTask } from "../types/task";
-import { rankTasks } from "../utils/ranking";
+import { tasks as tasksApi } from "../../services/lf";
+import type { Complexity, RankedTask } from "../../types/task";
+import { rankTasks } from "../../utils/ranking";
+import ControlsPanel from "./components/ControlsPanel";
+import CreateTaskModal from "./components/CreateTaskModal";
+import InfoPanel from "./components/InfoPanel";
+import TaskDetailPanel from "./components/TaskDetailPanel";
+import TaskListPanel from "./components/TaskListPanel";
+import { usePlanetManager } from "./hooks/usePlanetManager";
+import { useSceneAnimation } from "./hooks/useSceneAnimation";
+import { useSceneInteraction } from "./hooks/useSceneInteraction";
+import { useTaskOperations } from "./hooks/useTaskOperations";
+import { useThreeScene } from "./hooks/useThreeScene";
+import { useUIControls } from "./hooks/useUIControls";
 
 function planetSize(complexity: Complexity): number {
   return 0.6 + complexity * 0.3;

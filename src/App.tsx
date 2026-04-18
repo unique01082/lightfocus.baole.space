@@ -1,13 +1,13 @@
-import { BrowserRouter, Routes, Route } from 'react-router';
-import { AuthProvider } from './contexts/AuthContext';
+import { BrowserRouter, Route, Routes } from 'react-router';
+import './App.css';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import Navbar from './components/Navbar';
-import SolarSystem from './components/SolarSystem';
-import AuthPage from './pages/AuthPage';
+import { AuthProvider } from './contexts/AuthContext';
 import AuthCallbackPage from './pages/AuthCallbackPage';
+import AuthPage from './pages/AuthPage';
 import HelpPage from './pages/HelpPage';
+import SolarSystem from './pages/SolarSystemPage';
 import TaskListPage from './pages/TaskListPage';
-import './App.css';
 
 export default function App() {
   return (
