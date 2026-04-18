@@ -7,17 +7,10 @@ import { RenderPass } from 'three/examples/jsm/postprocessing/RenderPass.js';
 import { OutputPass } from 'three/examples/jsm/postprocessing/OutputPass.js';
 import { UnrealBloomPass } from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
 import { Lensflare, LensflareElement } from 'three/examples/jsm/objects/Lensflare.js';
-import type { RankedTask, BullseyeRank, Priority, Complexity, Subtask } from '../types/task';
+import type { Task, RankedTask, BullseyeRank, Priority, Complexity, Subtask } from '../types/task';
 import { rankTasks, groupByOrbit } from '../utils/ranking';
-import { 
-  loadTasks, 
-  createTaskOnServer, 
-  updateTaskOnServer, 
-  deleteTaskFromServer,
-  createSubtaskOnServer,
-  updateSubtaskOnServer,
-  getRandomColor 
-} from '../stores/taskStore';
+import { tasks as tasksApi, subtasks as subtasksApi, type LF } from '../services/lf';
+import { getRandomColor } from '../utils/colors';
 
 /* ───────────── orbit distances (1-7) ───────────── */
 const ORBIT_DISTANCES: Record<BullseyeRank, number> = {
@@ -95,11 +88,17 @@ export default function SolarSystem() {
   const {
     data: tasks = [],
     mutate: setTasks,
-  } = useRequest(loadTasks, {
-    onSuccess: (data) => {
-      console.log('Tasks loaded:', data.length);
+  } = useRequest(
+    async () => {
+      const response = await tasksApi.tasksControllerFindAll({ limit: 1000, offset: 0 });
+      return (Array.isArray(response) ? response : []) as Task[];
     },
-  });
+    {
+      onSuccess: (data) => {
+        console.log('Tasks loaded:', data.length);
+      },
+    }
+  );
 
   const [selectedTask, setSelectedTask] = useState<RankedTask | null>(null);
   
@@ -681,14 +680,15 @@ export default function SolarSystem() {
     async () => {
       if (!formTitle.trim()) return null;
       
-      const newTask = await createTaskOnServer({
+      const taskData: LF.CreateTaskDto = {
         title: formTitle.trim(),
         description: formDesc,
         priority: formPriority,
         complexity: formComplexity,
-        dueDate: formDueDate || null,
+        dueDate: formDueDate || undefined,
         color: formColor,
-      });
+      };
+      const newTask = (await tasksApi.tasksControllerCreate(taskData)) as unknown as Task;
       
       if (newTask) {
         setTasks([...tasks, newTask]);
@@ -708,14 +708,18 @@ export default function SolarSystem() {
     async () => {
       if (!selectedTask || !formTitle.trim()) return null;
       
-      const updated = await updateTaskOnServer(selectedTask.id, {
+      const updateData: LF.UpdateTaskDto = {
         title: formTitle.trim(),
         description: formDesc,
         priority: formPriority,
         complexity: formComplexity,
-        dueDate: formDueDate || null,
+        dueDate: formDueDate || undefined,
         color: formColor,
-      });
+      };
+      const updated = (await tasksApi.tasksControllerUpdate(
+        { id: selectedTask.id },
+        updateData
+      )) as unknown as Task;
       
       if (updated) {
         setTasks(tasks.map(t => t.id === selectedTask.id ? updated : t));
@@ -735,7 +739,8 @@ export default function SolarSystem() {
 
   const { run: deleteTask } = useRequest(
     async (id: string) => {
-      const success = await deleteTaskFromServer(id);
+      await tasksApi.tasksControllerRemove({ id });
+      const success = true;
       if (success) {
         setTasks(tasks.filter(t => t.id !== id));
         setShowTaskPanel(false);
@@ -755,9 +760,10 @@ export default function SolarSystem() {
       const task = tasks.find(t => t.id === id);
       if (!task) return null;
       
-      const updated = await updateTaskOnServer(id, { 
-        completed: !task.completed 
-      });
+      const updated = (await tasksApi.tasksControllerUpdate(
+        { id },
+        { completed: !task.completed }
+      )) as unknown as Task;
       
       if (updated) {
         setTasks(tasks.map(t => t.id === id ? updated : t));
@@ -777,7 +783,10 @@ export default function SolarSystem() {
     async (taskId: string, title: string) => {
       if (!title.trim()) return null;
       
-      const newSubtask = await createSubtaskOnServer(taskId, title.trim());
+      const newSubtask = (await subtasksApi.subtasksControllerCreate(
+        { taskId },
+        { title: title.trim() }
+      )) as unknown as Subtask;
       
       if (newSubtask) {
         setTasks(tasks.map(t =>
@@ -804,9 +813,10 @@ export default function SolarSystem() {
       const subtask = task.subtasks.find(s => s.id === subtaskId);
       if (!subtask) return null;
       
-      const updatedSubtask = await updateSubtaskOnServer(taskId, subtaskId, {
-        completed: !subtask.completed
-      });
+      const updatedSubtask = (await subtasksApi.subtasksControllerUpdate(
+        { id: subtaskId, taskId },
+        { completed: !subtask.completed }
+      )) as unknown as Subtask;
       
       if (updatedSubtask) {
         setTasks(tasks.map(t =>

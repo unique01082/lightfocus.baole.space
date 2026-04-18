@@ -1,18 +1,11 @@
 import { useState } from 'react';
 import { Link } from 'react-router';
 import { useRequest, useToggle, useLocalStorageState } from 'ahooks';
-import type { Task, Priority, Complexity, BullseyeRank } from '../types/task';
-import { 
-  loadTasks, 
-  createTaskOnServer, 
-  updateTaskOnServer,
-  deleteTaskFromServer,
-  createSubtaskOnServer,
-  updateSubtaskOnServer,
-  getRandomColor 
-} from '../stores/taskStore';
+import type { Task, Priority, Complexity, BullseyeRank, Subtask } from '../types/task';
+import { tasks as tasksApi, subtasks as subtasksApi, type LF } from '../services/lf';
 import { rankTasks } from '../utils/ranking';
 import { useAuth } from '../contexts/useAuth';
+import { getRandomColor } from '../utils/colors';
 
 const ORBIT_LABELS: Record<BullseyeRank, string> = {
   1: 'Critical', 2: 'Very High', 3: 'High', 4: 'Medium',
@@ -52,15 +45,29 @@ export default function TaskListPage() {
     data: tasks = [],
     loading,
     mutate: setTasks,
-  } = useRequest(loadTasks, {
-    ready: !authLoading && !!user, // Only run when user is authenticated
-    refreshDeps: [user],
-  });
+  } = useRequest(
+    async () => {
+      const response = await tasksApi.tasksControllerFindAll({ limit: 1000, offset: 0 });
+      return (Array.isArray(response) ? response : []) as Task[];
+    },
+    {
+      ready: !authLoading && !!user, // Only run when user is authenticated
+      refreshDeps: [user],
+    }
+  );
 
   // Use ahooks useRequest for mutations
   const { run: createTask, loading: creating } = useRequest(
     async (taskData: Partial<Task>) => {
-      const newTask = await createTaskOnServer(taskData);
+      const createData: LF.CreateTaskDto = {
+        title: taskData.title || 'New Task',
+        description: taskData.description || '',
+        priority: taskData.priority || 'medium',
+        complexity: taskData.complexity || 3,
+        dueDate: taskData.dueDate ?? undefined,
+        color: taskData.color || getRandomColor(),
+      };
+      const newTask = (await tasksApi.tasksControllerCreate(createData)) as unknown as Task;
       if (newTask) {
         setTasks([...tasks, newTask]);
         // Reset form
@@ -82,7 +89,10 @@ export default function TaskListPage() {
       const task = tasks.find(t => t.id === id);
       if (!task) return null;
       
-      const updated = await updateTaskOnServer(id, { completed: !task.completed });
+      const updated = (await tasksApi.tasksControllerUpdate(
+        { id },
+        { completed: !task.completed }
+      )) as unknown as Task;
       if (updated) {
         setTasks(tasks.map(t => t.id === id ? updated : t));
       }
@@ -93,7 +103,8 @@ export default function TaskListPage() {
 
   const { run: deleteTask } = useRequest(
     async (id: string) => {
-      const success = await deleteTaskFromServer(id);
+      await tasksApi.tasksControllerRemove({ id });
+      const success = true;
       if (success) {
         setTasks(tasks.filter(t => t.id !== id));
       }
@@ -110,9 +121,10 @@ export default function TaskListPage() {
       const subtask = task.subtasks.find(s => s.id === subtaskId);
       if (!subtask) return null;
       
-      const updatedSubtask = await updateSubtaskOnServer(taskId, subtaskId, {
-        completed: !subtask.completed
-      });
+      const updatedSubtask = (await subtasksApi.subtasksControllerUpdate(
+        { id: subtaskId, taskId },
+        { completed: !subtask.completed }
+      )) as unknown as Subtask;
       
       if (updatedSubtask) {
         setTasks(tasks.map(t => {
@@ -132,7 +144,10 @@ export default function TaskListPage() {
     async (taskId: string, title: string) => {
       if (!title.trim()) return null;
       
-      const newSubtask = await createSubtaskOnServer(taskId, title);
+      const newSubtask = (await subtasksApi.subtasksControllerCreate(
+        { taskId },
+        { title: title.trim() }
+      )) as unknown as Subtask;
       if (newSubtask) {
         setTasks(tasks.map(t => {
           if (t.id !== taskId) return t;
