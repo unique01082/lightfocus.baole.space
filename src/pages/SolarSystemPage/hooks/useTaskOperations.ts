@@ -31,7 +31,7 @@ export function useTaskOperations(
     setFormColor(getRandomColor());
   };
 
-  const { run: createTask } = useRequest(
+  const { run: createTask, loading: creating } = useRequest(
     async () => {
       if (!formTitle.trim()) return null;
       const newTask = await tasksApi.tasksControllerCreate({
@@ -52,7 +52,7 @@ export function useTaskOperations(
     { manual: true },
   );
 
-  const { run: deleteTask } = useRequest(
+  const { run: deleteTask, loading: deleting } = useRequest(
     async (id: string) => {
       await tasksApi.tasksControllerRemove({ id });
       await refetchTasks();
@@ -63,7 +63,7 @@ export function useTaskOperations(
     { manual: true },
   );
 
-  const { run: toggleComplete } = useRequest(
+  const { run: toggleComplete, loading: togglingComplete } = useRequest(
     async (id: string) => {
       const task = tasks.find((t) => t.id === id);
       if (!task) return null;
@@ -81,7 +81,7 @@ export function useTaskOperations(
     { manual: true },
   );
 
-  const { run: addSubtask } = useRequest(
+  const { run: addSubtask, loading: addingSubtask } = useRequest(
     async (taskId: string, title: string) => {
       if (!title.trim()) return null;
       const newSubtask = await subtasksApi.subtasksControllerCreate(
@@ -94,7 +94,7 @@ export function useTaskOperations(
     { manual: true },
   );
 
-  const { run: toggleSubtask } = useRequest(
+  const { run: toggleSubtask, loading: togglingSubtask } = useRequest(
     async (taskId: string, subtaskId: string) => {
       const task = tasks.find((t) => t.id === taskId);
       if (!task) return null;
@@ -151,10 +151,15 @@ export function useTaskOperations(
     setFormColor,
     resetForm,
     createTask,
+    creating,
     deleteTask,
+    deleting,
     toggleComplete,
+    togglingComplete,
     addSubtask,
+    addingSubtask,
     toggleSubtask,
+    togglingSubtask,
     handleDeleteSubtask,
     handleTaskUpdate,
   };

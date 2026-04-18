@@ -16,6 +16,7 @@ interface TaskFormProps {
   onSubmit: () => void;
   onCancel: () => void;
   submitLabel: string;
+  loading?: boolean;
 }
 
 export default function TaskForm({
@@ -34,6 +35,7 @@ export default function TaskForm({
   onSubmit,
   onCancel,
   submitLabel,
+  loading = false,
 }: TaskFormProps) {
   const inputStyle: React.CSSProperties = {
     width: "100%",
@@ -152,13 +154,15 @@ export default function TaskForm({
           className="follow-planet-btn"
           style={{ flex: 1 }}
           onClick={onSubmit}
+          disabled={loading}
         >
-          {submitLabel}
+          {loading ? '⏳ Loading...' : submitLabel}
         </button>
         <button
           className="follow-planet-btn"
           style={{ flex: 0.5, background: "var(--button-secondary)" }}
           onClick={onCancel}
+          disabled={loading}
         >
           Cancel
         </button>

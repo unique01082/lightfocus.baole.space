@@ -32,6 +32,7 @@ export default function TaskListPage() {
   const {
     data,
     mutate: setTasks,
+    loading: loadingTasks,
   } = useRequest(
     tasksApi.tasksControllerFindAll,
     {
@@ -69,7 +70,7 @@ export default function TaskListPage() {
     { manual: true }
   );
 
-  const { run: toggleComplete } = useRequest(
+  const { run: toggleComplete, loading: togglingComplete } = useRequest(
     async (id: string) => {
       const task = tasks.find((t) => t.id === id);
       if (!task) return;
@@ -81,7 +82,7 @@ export default function TaskListPage() {
     { manual: true }
   );
 
-  const { run: deleteTask } = useRequest(
+  const { run: deleteTask, loading: deleting } = useRequest(
     async (id: string) => {
       await tasksApi.tasksControllerRemove({ id });
       const response = await tasksApi.tasksControllerFindAll({ limit: 1000, offset: 0 });
@@ -90,7 +91,7 @@ export default function TaskListPage() {
     { manual: true }
   );
 
-  const { run: toggleSubtask } = useRequest(
+  const { run: toggleSubtask, loading: togglingSubtask } = useRequest(
     async (taskId: string, subtaskId: string) => {
       const task = tasks.find((t) => t.id === taskId);
       if (!task) return;
@@ -109,7 +110,7 @@ export default function TaskListPage() {
     { manual: true }
   );
 
-  const { run: addSubtask } = useRequest(
+  const { run: addSubtask, loading: addingSubtask } = useRequest(
     async (taskId: string, title: string) => {
       if (!title.trim()) return;
 
@@ -149,6 +150,19 @@ export default function TaskListPage() {
           <div className="empty-state">
             <p className="empty-icon">🔒</p>
             <p>Please log in to view your tasks</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (loadingTasks) {
+    return (
+      <div className="page-container">
+        <div className="page-content">
+          <div className="empty-state">
+            <p className="empty-icon">⌛</p>
+            <p>Loading tasks...</p>
           </div>
         </div>
       </div>

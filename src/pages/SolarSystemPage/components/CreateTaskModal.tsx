@@ -16,6 +16,7 @@ interface CreateTaskModalProps {
   setFormDueDate: (value: string) => void;
   setFormColor: (value: string) => void;
   onSubmit: () => void;
+  loading?: boolean;
 }
 
 export default function CreateTaskModal({
@@ -33,6 +34,7 @@ export default function CreateTaskModal({
   setFormDueDate,
   setFormColor,
   onSubmit,
+  loading = false,
 }: CreateTaskModalProps) {
   return (
     <div
@@ -91,6 +93,7 @@ export default function CreateTaskModal({
           onSubmit={onSubmit}
           onCancel={onClose}
           submitLabel="🚀 CREATE PLANET"
+          loading={loading}
         />
       </div>
     </div>

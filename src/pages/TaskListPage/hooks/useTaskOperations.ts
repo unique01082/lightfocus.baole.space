@@ -46,7 +46,7 @@ export function useTaskOperations(
     { manual: true }
   );
 
-  const { run: toggleComplete } = useRequest(
+  const { run: toggleComplete, loading: togglingComplete } = useRequest(
     async (id: string) => {
       const task = tasks.find((t) => t.id === id);
       if (!task) return null;
@@ -63,7 +63,7 @@ export function useTaskOperations(
     { manual: true }
   );
 
-  const { run: deleteTask } = useRequest(
+  const { run: deleteTask, loading: deleting } = useRequest(
     async (id: string) => {
       await tasksApi.tasksControllerRemove({ id });
       const success = true;
@@ -75,7 +75,7 @@ export function useTaskOperations(
     { manual: true }
   );
 
-  const { run: toggleSubtask } = useRequest(
+  const { run: toggleSubtask, loading: togglingSubtask } = useRequest(
     async (taskId: string, subtaskId: string) => {
       const task = tasks.find((t) => t.id === taskId);
       if (!task) return null;
@@ -106,7 +106,7 @@ export function useTaskOperations(
     { manual: true }
   );
 
-  const { run: addSubtask } = useRequest(
+  const { run: addSubtask, loading: addingSubtask } = useRequest(
     async (taskId: string, title: string) => {
       if (!title.trim()) return null;
 
@@ -146,9 +146,13 @@ export function useTaskOperations(
     createTask,
     creating,
     toggleComplete,
+    togglingComplete,
     deleteTask,
+    deleting,
     toggleSubtask,
+    togglingSubtask,
     addSubtask,
+    addingSubtask,
     resetForm,
   };
 }

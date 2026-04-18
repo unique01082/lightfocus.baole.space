@@ -4,7 +4,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 export default function AuthPage() {
   const navigate = useNavigate();
-  const { user, loading, isConfigured, signIn } = useAuth();
+  const { user, loading, signingIn, isConfigured, signIn } = useAuth();
 
   useEffect(() => {
     if (!loading && user) {
@@ -27,9 +27,9 @@ export default function AuthPage() {
           <button
             className="auth-btn"
             onClick={signIn}
-            disabled={loading}
+            disabled={loading || signingIn}
           >
-            {loading ? (
+            {signingIn ? (
               <span className="spinner" />
             ) : (
               <>🔐 Sign in with SSO</>

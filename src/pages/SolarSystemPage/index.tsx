@@ -22,7 +22,7 @@ function planetSize(complexity: Complexity): number {
 export default function SolarSystem() {
   const { sceneDataRef, containerRef } = useThreeScene();
 
-  const { data: { data: tasks = [] } = {}, mutate: setTasks } = useRequest(
+  const { data: { data: tasks = [] } = {}, mutate: setTasks, loading: loadingTasks } = useRequest(
     tasksApi.tasksControllerFindAll,
     {
       defaultParams: [{ limit: 1000, offset: 0 }],
@@ -185,6 +185,7 @@ export default function SolarSystem() {
           setFormDueDate={taskOps.setFormDueDate}
           setFormColor={taskOps.setFormColor}
           onSubmit={() => taskOps.createTask()}
+          loading={taskOps.creating}
         />
       )}
 

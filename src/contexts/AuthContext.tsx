@@ -1,12 +1,12 @@
 import {
-  createContext,
-  useEffect,
-  useState,
-  useCallback,
-  type ReactNode,
+    createContext,
+    useCallback,
+    useEffect,
+    useState,
+    type ReactNode,
 } from 'react';
-import { userManager, type OidcUser } from '../services/oidc';
 import { users } from '../services/lf';
+import { userManager, type OidcUser } from '../services/oidc';
 
 export interface UserProfile {
   sub: string;
@@ -20,6 +20,8 @@ export interface AuthContextType {
   user: UserProfile | null;
   oidcUser: OidcUser | null;
   loading: boolean;
+  signingIn: boolean;
+  signingOut: boolean;
   isAdmin: boolean;
   isConfigured: boolean;
   signIn: () => Promise<void>;
@@ -40,7 +42,7 @@ async function syncProfile(oidcUser: OidcUser): Promise<UserProfile> {
   try {
     // Fetch user profile from API (response interceptor already extracts data)
     const profile = await users.usersControllerGetMe();
-    
+
     if (profile) {
       return {
         sub: (profile as any).sub ?? sub,
@@ -62,6 +64,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [oidcUser, setOidcUser] = useState<OidcUser | null>(null);
   const [user, setUser] = useState<UserProfile | null>(null);
   const [loading, setLoading] = useState(true);
+  const [signingIn, setSigningIn] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
   const isConfigured = userManager !== null;
 
   const loadUser = useCallback(async (ou: OidcUser | null) => {
@@ -72,12 +76,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
     setOidcUser(ou);
-    
+
     // Store Authentik access token for API calls
     if (ou.access_token) {
       localStorage.setItem('token', ou.access_token);
     }
-    
+
     const profile = await syncProfile(ou);
     setUser(profile);
   }, []);
@@ -119,21 +123,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [loadUser]);
 
   const signIn = useCallback(async () => {
-    if (userManager) await userManager.signinRedirect();
+    if (userManager) {
+      setSigningIn(true);
+      try {
+        await userManager.signinRedirect();
+      } finally {
+        setSigningIn(false);
+      }
+    }
   }, []);
 
   const signOut = useCallback(async () => {
-    localStorage.removeItem('token');
-    if (userManager) await userManager.signoutRedirect();
-    setUser(null);
-    setOidcUser(null);
+    setSigningOut(true);
+    try {
+      localStorage.removeItem('token');
+      if (userManager) await userManager.signoutRedirect();
+      setUser(null);
+      setOidcUser(null);
+    } finally {
+      setSigningOut(false);
+    }
   }, []);
 
   const isAdmin = user?.role === 'admin';
 
   return (
     <AuthContext.Provider
-      value={{ user, oidcUser, loading, isAdmin, isConfigured, signIn, signOut }}
+      value={{ user, oidcUser, loading, signingIn, signingOut, isAdmin, isConfigured, signIn, signOut }}
     >
       {children}
     </AuthContext.Provider>
