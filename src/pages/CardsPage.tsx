@@ -15,6 +15,25 @@ const RANK_LABELS: Record<number, string> = {
   7: '❄️ Ring 7 — Backlog',
 };
 
+function getTaskDescription(description: RankedTask['description']): string {
+  if (typeof description === 'string') return description;
+  if (description == null) return '';
+  try {
+    return JSON.stringify(description);
+  } catch {
+    return String(description);
+  }
+}
+
+function getTaskDueDateLabel(dueDate: RankedTask['dueDate']): string | null {
+  if (typeof dueDate === 'string' || typeof dueDate === 'number') {
+    const parsed = new Date(dueDate);
+    return Number.isNaN(parsed.getTime()) ? null : parsed.toLocaleDateString();
+  }
+
+  return null;
+}
+
 interface TaskCardProps {
   task: RankedTask;
   onClick: () => void;
@@ -23,6 +42,8 @@ interface TaskCardProps {
 function TaskCard({ task, onClick }: TaskCardProps) {
   const completedSubtasks = task.subtasks?.filter((s: any) => s.completed).length || 0;
   const totalSubtasks = task.subtasks?.length || 0;
+  const description = getTaskDescription(task.description);
+  const dueDateLabel = getTaskDueDateLabel(task.dueDate);
 
   return (
     <div
@@ -40,9 +61,9 @@ function TaskCard({ task, onClick }: TaskCardProps) {
         {task.completed && <span className="text-xl ml-2">✅</span>}
       </div>
 
-      {task.description && (
+      {description && (
         <p className="text-purple-200/70 text-xs mb-3 line-clamp-2">
-          {task.description}
+          {description}
         </p>
       )}
 
@@ -60,9 +81,9 @@ function TaskCard({ task, onClick }: TaskCardProps) {
         )}
       </div>
 
-      {task.dueDate && (
+      {dueDateLabel && (
         <div className="mt-2 text-xs text-purple-300/80">
-          📅 {new Date(task.dueDate).toLocaleDateString()}
+          📅 {dueDateLabel}
         </div>
       )}
     </div>

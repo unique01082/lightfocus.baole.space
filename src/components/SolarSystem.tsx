@@ -129,6 +129,18 @@ export default function SolarSystem() {
         onToggleOrbits={uiControls.handleToggleOrbits}
         showMoons={uiControls.showMoonsState || false}
         onToggleMoons={uiControls.handleToggleMoons}
+        cameraRotateSpeed={uiControls.cameraRotateSpeed || 0.3}
+        onCameraRotateSpeedChange={uiControls.handleCameraRotateSpeedChange}
+        cameraZoomSpeed={uiControls.cameraZoomSpeed || 0.8}
+        onCameraZoomSpeedChange={uiControls.handleCameraZoomSpeedChange}
+        cameraPanSpeed={uiControls.cameraPanSpeed || 0.5}
+        onCameraPanSpeedChange={uiControls.handleCameraPanSpeedChange}
+        cameraAutoRotate={uiControls.cameraAutoRotate || false}
+        onToggleCameraAutoRotate={uiControls.handleToggleAutoRotate}
+        cameraFOV={uiControls.cameraFOV || 75}
+        onCameraFOVChange={uiControls.handleCameraFOVChange}
+        shadowsEnabled={uiControls.shadowsEnabled || false}
+        onToggleShadows={uiControls.handleToggleShadows}
         onResetCamera={stopFollowing}
         onToggleUI={() => setUiHidden(true)}
         onOpenCreateModal={() => {
