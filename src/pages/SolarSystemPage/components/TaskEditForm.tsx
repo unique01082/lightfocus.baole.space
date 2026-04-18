@@ -1,3 +1,4 @@
+import { Button, Input, Select, Textarea } from '../../../components/ui';
 import type { Complexity, Priority } from '../../../types/task';
 
 interface TaskEditFormProps {
@@ -30,126 +31,61 @@ export default function TaskEditForm({
   onCancel,
 }: TaskEditFormProps) {
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-      <div>
-        <label style={{ fontSize: 10, color: 'var(--accent-1)', display: 'block', marginBottom: 4 }}>
-          TITLE
-        </label>
-        <input
-          type="text"
-          value={editTitle}
-          onChange={(e) => setEditTitle(e.target.value)}
-          style={{
-            width: '100%',
-            fontSize: 11,
-            padding: '6px 8px',
-            background: 'rgba(0,0,0,0.3)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: 4,
-            color: 'var(--text-primary)',
-          }}
-        />
-      </div>
-      <div>
-        <label style={{ fontSize: 10, color: 'var(--accent-1)', display: 'block', marginBottom: 4 }}>
-          DESCRIPTION
-        </label>
-        <textarea
-          value={editDesc}
-          onChange={(e) => setEditDesc(e.target.value)}
-          style={{
-            width: '100%',
-            fontSize: 11,
-            padding: '6px 8px',
-            background: 'rgba(0,0,0,0.3)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: 4,
-            color: 'var(--text-primary)',
-            minHeight: 60,
-            resize: 'vertical',
-          }}
-        />
-      </div>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-        <div>
-          <label style={{ fontSize: 10, color: 'var(--accent-1)', display: 'block', marginBottom: 4 }}>
-            PRIORITY
-          </label>
-          <select
-            value={editPriority}
-            onChange={(e) => setEditPriority(e.target.value as Priority)}
-            style={{
-              width: '100%',
-              fontSize: 11,
-              padding: '6px 8px',
-              background: 'rgba(0,0,0,0.3)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              borderRadius: 4,
-              color: 'var(--text-primary)',
-            }}
-          >
-            <option value="critical">Critical</option>
-            <option value="high">High</option>
-            <option value="medium">Medium</option>
-            <option value="low">Low</option>
-            <option value="none">None</option>
-          </select>
-        </div>
-        <div>
-          <label style={{ fontSize: 10, color: 'var(--accent-1)', display: 'block', marginBottom: 4 }}>
-            COMPLEXITY
-          </label>
-          <select
-            value={editComplexity}
-            onChange={(e) => setEditComplexity(parseInt(e.target.value) as Complexity)}
-            style={{
-              width: '100%',
-              fontSize: 11,
-              padding: '6px 8px',
-              background: 'rgba(0,0,0,0.3)',
-              border: '1px solid rgba(255,255,255,0.1)',
-              borderRadius: 4,
-              color: 'var(--text-primary)',
-            }}
-          >
-            <option value={1}>1 — Simple</option>
-            <option value={2}>2 — Easy</option>
-            <option value={3}>3 — Medium</option>
-            <option value={4}>4 — Complex</option>
-            <option value={5}>5 — Very Complex</option>
-          </select>
-        </div>
-      </div>
-      <div>
-        <label style={{ fontSize: 10, color: 'var(--accent-1)', display: 'block', marginBottom: 4 }}>
-          DUE DATE
-        </label>
-        <input
-          type="date"
-          value={editDueDate}
-          onChange={(e) => setEditDueDate(e.target.value)}
-          style={{
-            width: '100%',
-            fontSize: 11,
-            padding: '6px 8px',
-            background: 'rgba(0,0,0,0.3)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: 4,
-            color: 'var(--text-primary)',
-          }}
-        />
-      </div>
-      <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
-        <button className="follow-planet-btn" style={{ flex: 1 }} onClick={onSave}>
-          💾 Save
-        </button>
-        <button
-          className="follow-planet-btn"
-          style={{ flex: 1, background: 'var(--button-secondary)' }}
-          onClick={onCancel}
+    <div className="flex flex-col gap-3">
+      <Input
+        label="TITLE"
+        type="text"
+        value={editTitle}
+        onChange={(e) => setEditTitle(e.target.value)}
+      />
+
+      <Textarea
+        label="DESCRIPTION"
+        value={editDesc}
+        onChange={(e) => setEditDesc(e.target.value)}
+        rows={3}
+      />
+
+      <div className="grid grid-cols-2 gap-2.5">
+        <Select
+          label="PRIORITY"
+          value={editPriority}
+          onChange={(e) => setEditPriority(e.target.value as Priority)}
         >
+          <option value="critical">Critical</option>
+          <option value="high">High</option>
+          <option value="medium">Medium</option>
+          <option value="low">Low</option>
+          <option value="none">None</option>
+        </Select>
+
+        <Select
+          label="COMPLEXITY"
+          value={editComplexity}
+          onChange={(e) => setEditComplexity(parseInt(e.target.value) as Complexity)}
+        >
+          <option value={1}>1 — Simple</option>
+          <option value={2}>2 — Easy</option>
+          <option value={3}>3 — Medium</option>
+          <option value={4}>4 — Complex</option>
+          <option value={5}>5 — Very Complex</option>
+        </Select>
+      </div>
+
+      <Input
+        label="DUE DATE"
+        type="date"
+        value={editDueDate}
+        onChange={(e) => setEditDueDate(e.target.value)}
+      />
+
+      <div className="flex gap-1.5 mt-1.5">
+        <Button variant="primary" size="sm" onClick={onSave} fullWidth>
+          💾 Save
+        </Button>
+        <Button variant="secondary" size="sm" onClick={onCancel} fullWidth>
           ✖ Cancel
-        </button>
+        </Button>
       </div>
     </div>
   );

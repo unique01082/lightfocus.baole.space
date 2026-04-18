@@ -1,11 +1,11 @@
 import { useRequest, useToggle } from "ahooks";
 import { useEffect, useState } from "react";
+import info from '../../../package.json';
 import { tasks as tasksApi } from "../../services/lf";
 import type { Complexity, RankedTask } from "../../types/task";
 import { rankTasks } from "../../utils/ranking";
 import ControlsPanel from "./components/ControlsPanel";
 import CreateTaskModal from "./components/CreateTaskModal";
-import InfoPanel from "./components/InfoPanel";
 import TaskDetailPanel from "./components/TaskDetailPanel";
 import TaskListPanel from "./components/TaskListPanel";
 import { usePlanetManager } from "./hooks/usePlanetManager";
@@ -88,7 +88,7 @@ export default function SolarSystem() {
     sd.followingPlanet = planetData;
   };
 
-  const rankedTasks = rankTasks(tasks as any);
+  const rankedTasks = rankTasks(tasks);
 
   return (
     <>
@@ -109,8 +109,6 @@ export default function SolarSystem() {
           Show UI (H)
         </button>
       )}
-
-      <InfoPanel tasks={tasks} uiHidden={uiHidden} rankedTasks={rankedTasks} />
 
       <ControlsPanel
         uiHidden={uiHidden}
@@ -192,7 +190,7 @@ export default function SolarSystem() {
       <footer className={`nasa-footer ${uiHidden ? "ui-hidden" : ""}`}>
         <div className="footer-content">
           <strong style={{ color: "var(--accent-1)" }}>LIGHT FOCUS</strong> —
-          Bullseye Task Manager
+          Bullseye Task Manager v{info.version}
         </div>
       </footer>
     </>

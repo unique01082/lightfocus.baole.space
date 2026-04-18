@@ -1,89 +1,95 @@
-:root {
-  /* ── baole.space Gradient Theme ── */
-  --bg-deep: #0f0c29;
-  --bg-mid: #302b63;
-  --bg-light: #24243e;
-  --accent-1: #667eea;
-  --accent-2: #764ba2;
-  --accent-3: #f093fb;
-  --accent-4: #f5576c;
-  --accent-5: #4facfe;
-  --accent-6: #00f2fe;
-  --text-primary: #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.7);
-  --text-muted: rgba(255, 255, 255, 0.5);
-  --glass-bg: rgba(255, 255, 255, 0.05);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --glass-hover: rgba(255, 255, 255, 0.1);
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-  /* Space Themed (kept for solar system) */
-  --deep-space: #000814;
-  --cosmic-blue: #001d3d;
-  --star-gold: #ffd60a;
-  --nebula-purple: #7209b7;
-  --comet-blue: #4cc9f0;
-  --asteroid-orange: #f77f00;
-  --planet-green: #2a9d8f;
+@layer base {
+  :root {
+    /* ── baole.space Gradient Theme ── */
+    --bg-deep: #0f0c29;
+    --bg-mid: #302b63;
+    --bg-light: #24243e;
+    --accent-1: #667eea;
+    --accent-2: #764ba2;
+    --accent-3: #f093fb;
+    --accent-4: #f5576c;
+    --accent-5: #4facfe;
+    --accent-6: #00f2fe;
+    --text-primary: #ffffff;
+    --text-secondary: rgba(255, 255, 255, 0.7);
+    --text-muted: rgba(255, 255, 255, 0.5);
+    --glass-bg: rgba(255, 255, 255, 0.05);
+    --glass-border: rgba(255, 255, 255, 0.1);
+    --glass-hover: rgba(255, 255, 255, 0.1);
 
-  /* UI panels (solar system) */
-  --nasa-white: #ffffff;
-  --nasa-gray: #e5e5e5;
-  --nasa-blue: #0b3d91;
-  --nasa-red: #fc3d21;
-  --nasa-dark-gray: #5a6670;
-  --panel-bg: rgba(15, 12, 41, 0.85);
-  --panel-border: rgba(102, 126, 234, 0.3);
-  --button-primary: linear-gradient(135deg, var(--accent-1), var(--accent-2));
-  --button-secondary: linear-gradient(135deg, #2a2a4a, #1e1e3a);
-  --button-active: linear-gradient(135deg, var(--accent-3), var(--accent-4));
-  --button-hover: linear-gradient(135deg, var(--accent-1), #5a6dee);
-}
+    /* Space Themed (kept for solar system) */
+    --deep-space: #000814;
+    --cosmic-blue: #001d3d;
+    --star-gold: #ffd60a;
+    --nebula-purple: #7209b7;
+    --comet-blue: #4cc9f0;
+    --asteroid-orange: #f77f00;
+    --planet-green: #2a9d8f;
 
-* {
-  box-sizing: border-box;
-}
+    /* UI panels (solar system) */
+    --nasa-white: #ffffff;
+    --nasa-gray: #e5e5e5;
+    --nasa-blue: #0b3d91;
+    --nasa-red: #fc3d21;
+    --nasa-dark-gray: #5a6670;
+    --panel-bg: rgba(15, 12, 41, 0.85);
+    --panel-border: rgba(102, 126, 234, 0.3);
+    --button-primary: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+    --button-secondary: linear-gradient(135deg, #2a2a4a, #1e1e3a);
+    --button-active: linear-gradient(135deg, var(--accent-3), var(--accent-4));
+    --button-hover: linear-gradient(135deg, var(--accent-1), #5a6dee);
+  }
 
-body {
-  margin: 0;
-  background: linear-gradient(135deg, var(--bg-deep), var(--bg-mid), var(--bg-light));
-  font-family: 'Space Grotesk', 'Inter', 'Titillium Web', sans-serif;
-  color: var(--text-primary);
-  min-height: 100vh;
-}
+  * {
+    box-sizing: border-box;
+  }
 
-canvas {
-  display: block;
-}
+  body {
+    margin: 0;
+    background: linear-gradient(135deg, var(--bg-deep), var(--bg-mid), var(--bg-light));
+    font-family: 'Space Grotesk', 'Inter', 'Titillium Web', sans-serif;
+    color: var(--text-primary);
+    min-height: 100vh;
+  }
 
-#root {
-  width: 100%;
-  min-height: 100vh;
-}
+  canvas {
+    display: block;
+  }
 
-/* ── Scrollbar ── */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(102, 126, 234, 0.3); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(102, 126, 234, 0.5); }
+  #root {
+    width: 100%;
+    min-height: 100vh;
+  }
 
-/* ── Keyboard focus ── */
-:focus-visible {
-  outline: 2px solid var(--accent-1);
-  outline-offset: 2px;
-}
+  /* ── Scrollbar ── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(102, 126, 234, 0.3); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(102, 126, 234, 0.5); }
 
-kbd {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 4px;
-  padding: 2px 6px;
-  font-family: 'Space Grotesk', monospace;
-  font-size: 12px;
-}
+  /* ── Keyboard focus ── */
+  :focus-visible {
+    outline: 2px solid var(--accent-1);
+    outline-offset: 2px;
+  }
 
-code {
-  background: rgba(255, 255, 255, 0.1);
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 13px;
+  kbd {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-family: 'Space Grotesk', monospace;
+    font-size: 12px;
+  }
+
+  code {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 13px;
+  }
 }

@@ -1,3 +1,4 @@
+import { Button, Panel, Tag } from '../../../components/ui';
 import type { BullseyeRank, RankedTask } from '../../../types/task';
 import { groupByOrbit } from '../../../utils/ranking';
 
@@ -26,123 +27,76 @@ export default function TaskListPanel({
 }: TaskListPanelProps) {
   const grouped = groupByOrbit(rankedTasks);
   const activeByRank = rankedTasks.filter((t) => !t.completed);
+  const completedTasks = rankedTasks.filter((t) => t.completed);
 
   return (
-    <div
-      className={`celestial-panel ${uiHidden ? 'ui-hidden' : ''}`}
-      style={{
-        top: 20,
-        right: 20,
-        width: 260,
-        maxHeight: 'calc(100vh - 100px)',
-        overflowY: 'auto',
-      }}
+    <Panel
+      className={`${uiHidden ? 'ui-hidden' : ''} w-[260px] max-h-[calc(100vh-100px)] overflow-y-auto`}
+      style={{ top: 20, right: 20 }}
     >
-      <div
-        className="panel-header"
-        style={{
-          fontSize: 11,
-          fontWeight: 700,
-          color: 'var(--accent-1)',
-          letterSpacing: 1,
-          marginBottom: 15,
-        }}
-      >
-        🌌 CELESTIAL BODIES
+      <div className="px-2 py-2 bg-gradient-to-br from-accent-1 to-accent-2 border-b border-panel -m-0 mb-4 rounded-t-lg">
+        <h3 className="m-0 font-space font-bold text-[11px] text-white uppercase tracking-widest">
+          CELESTIAL BODIES
+        </h3>
       </div>
-      <div className="celestial-content">
-        <div className="celestial-controls">
-          <button
-            className="follow-planet-btn"
-            style={{
-              padding: '6px 10px',
-              fontSize: 11,
-              background: selectedTask
-                ? 'var(--button-secondary)'
-                : 'transparent',
-            }}
+
+      <div className="px-2 pb-2">
+        <div className="mb-3">
+          <Button
+            size="sm"
+            variant={selectedTask ? 'secondary' : 'ghost'}
             onClick={() => onSelectTask(null)}
+            fullWidth
           >
             {selectedTask ? '✖ Deselect' : 'No selection'}
-          </button>
+          </Button>
         </div>
 
         {activeByRank.length === 0 ? (
-          <div
-            style={{
-              padding: '40px 15px',
-              textAlign: 'center',
-              color: 'var(--text-muted)',
-              fontSize: 12,
-            }}
-          >
-            <div style={{ fontSize: 32, marginBottom: 10 }}>🌠</div>
-            <div>No active tasks.</div>
-            <div style={{ fontSize: 10, marginTop: 4 }}>
+          <div className="py-10 px-4 text-center text-text-muted text-xs">
+            <div className="text-3xl mb-2">🌠</div>
+            <div className="text-sm">No active tasks.</div>
+            <div className="text-[10px] mt-1">
               Create a new planet to get started!
             </div>
           </div>
         ) : (
           <>
             {([1, 2, 3, 4, 5, 6, 7] as BullseyeRank[])
-              .filter((rank) => grouped[rank]?.length > 0)
+              .filter((rank) => grouped.get(rank)!.length > 0)
               .map((rank) => {
                 return (
-                  <div key={rank}>
-                    <div className="category-header">
-                      <span style={{ color: grouped[rank][0].color }}>⬤</span>{' '}
-                      {ORBIT_LABELS[rank]}
+                  <div key={rank} className="mb-4">
+                    <div className="flex items-center gap-2 mb-2 text-xs font-semibold text-text-secondary uppercase tracking-wide">
+                      <Tag color={grouped.get(rank)![0].color} size="sm">
+                        {ORBIT_LABELS[rank]}
+                      </Tag>
                     </div>
-                    <div
-                      style={{
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 6,
-                        paddingLeft: 16,
-                      }}
-                    >
-                      {grouped[rank].map((t) => {
+                    <div className="flex flex-col gap-1.5">
+                      {grouped.get(rank)!.map((t) => {
                         const isSelected = selectedTask?.id === t.id;
                         return (
                           <div
                             key={t.id}
                             onClick={() => onSelectTask(t)}
-                            style={{
-                              padding: '6px 10px',
-                              background: isSelected
-                                ? 'rgba(255,255,255,0.15)'
-                                : 'rgba(255,255,255,0.05)',
-                              borderRadius: 4,
-                              fontSize: 11,
-                              cursor: 'pointer',
-                              borderLeft: `3px solid ${t.color}`,
-                              transition: 'all 0.2s ease',
-                            }}
-                            onMouseEnter={(e) => {
-                              if (!isSelected) {
-                                e.currentTarget.style.background =
-                                  'rgba(255,255,255,0.1)';
+                            className={`
+                              px-2.5 py-1.5
+                              rounded
+                              text-[11px]
+                              cursor-pointer
+                              border-l-[3px]
+                              transition-all
+                              duration-200
+                              ${isSelected
+                                ? 'bg-white/15'
+                                : 'bg-white/5 hover:bg-white/10'
                               }
-                            }}
-                            onMouseLeave={(e) => {
-                              if (!isSelected) {
-                                e.currentTarget.style.background =
-                                  'rgba(255,255,255,0.05)';
-                              }
-                            }}
+                            `}
+                            style={{ borderLeftColor: t.color }}
                           >
-                            <div style={{ fontWeight: 600, marginBottom: 2 }}>
-                              {t.title}
-                            </div>
-                            <div
-                              style={{
-                                fontSize: 9,
-                                color: 'var(--text-muted)',
-                                display: 'flex',
-                                gap: 8,
-                              }}
-                            >
-                              <span>{t.priority}</span>
+                            <div className="font-semibold mb-0.5">{t.title}</div>
+                            <div className="text-[9px] text-text-muted flex gap-2">
+                              <span className="uppercase">{t.priority}</span>
                               <span>C{t.complexity}</span>
                               {t.subtasks && t.subtasks.length > 0 && (
                                 <span>
@@ -163,37 +117,34 @@ export default function TaskListPanel({
         )}
 
         {/* Completed section */}
-        {grouped.completed && grouped.completed.length > 0 && (
-          <div>
-            <div className="category-header">
-              <span style={{ color: '#4a9' }}>✓</span> Completed
+        {completedTasks.length > 0 && (
+          <div className="mt-4">
+            <div className="flex items-center gap-2 mb-2 text-xs font-semibold text-text-secondary uppercase tracking-wide">
+              <Tag color="#4a9" size="sm">
+                Completed
+              </Tag>
             </div>
-            <div
-              style={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 6,
-                paddingLeft: 16,
-              }}
-            >
-              {grouped.completed.map((t) => {
+            <div className="flex flex-col gap-1.5 pl-4">
+              {completedTasks.map((t) => {
                 const isSelected = selectedTask?.id === t.id;
                 return (
                   <div
                     key={t.id}
                     onClick={() => onSelectTask(t)}
-                    style={{
-                      padding: '6px 10px',
-                      background: isSelected
-                        ? 'rgba(255,255,255,0.15)'
-                        : 'rgba(255,255,255,0.05)',
-                      borderRadius: 4,
-                      fontSize: 11,
-                      cursor: 'pointer',
-                      borderLeft: `3px solid ${t.color}`,
-                      opacity: 0.6,
-                      textDecoration: 'line-through',
-                    }}
+                    className={`
+                      px-2.5 py-1.5
+                      rounded
+                      text-[11px]
+                      cursor-pointer
+                      border-l-[3px]
+                      opacity-60
+                      line-through
+                      ${isSelected
+                        ? 'bg-white/15'
+                        : 'bg-white/5 hover:bg-white/10'
+                      }
+                    `}
+                    style={{ borderLeftColor: t.color }}
                   >
                     {t.title}
                   </div>
@@ -202,13 +153,7 @@ export default function TaskListPanel({
             </div>
           </div>
         )}
-
-        {activeByRank.length === 0 && (
-          <div style={{ padding: '15px', textAlign: 'center', opacity: 0.6 }}>
-            <div style={{ fontSize: 11 }}>No active tasks.</div>
-          </div>
-        )}
       </div>
-    </div>
+    </Panel>
   );
 }

@@ -1,5 +1,5 @@
 import { BrowserRouter, Route, Routes } from 'react-router';
-import './App.css';
+import './App.legacy.css';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import Navbar from './components/Navbar';
 import { AuthProvider } from './contexts/AuthContext';

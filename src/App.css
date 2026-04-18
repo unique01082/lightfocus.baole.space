@@ -122,7 +122,6 @@
 }
 
 .control-content {
-  max-height: 300px;
   overflow-y: auto;
   transition: max-height 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94),
     padding 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -418,6 +417,8 @@
   position: sticky;
   top: 0;
   z-index: 2001;
+  display: flex;
+  justify-content: space-between;
 }
 
 .planet-info-title {
@@ -609,18 +610,18 @@
 .nasa-footer {
   position: fixed;
   bottom: 15px;
-  right: 15px;
+  left: 15px;
   background: none;
   border: none;
   backdrop-filter: none;
   z-index: 1001;
   padding: 5px 8px;
+  font-size: 8px;
 }
 
 .footer-content {
   text-align: right;
   font-family: 'Space Grotesk', sans-serif;
-  font-size: 11px;
   font-weight: 500;
   color: rgba(255, 255, 255, 0.6);
   letter-spacing: 0.5px;

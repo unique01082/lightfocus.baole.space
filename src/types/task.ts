@@ -15,4 +15,4 @@ export type Complexity = 1 | 2 | 3 | 4 | 5;
  * 1 = closest to sun (most important/urgent)
  * 7 = farthest from sun (least important)
  */
-export type BullseyeRank = 1 | 2 | 3 | 4 | 5 | 6 | 7;
+export type BullseyeRank = number;

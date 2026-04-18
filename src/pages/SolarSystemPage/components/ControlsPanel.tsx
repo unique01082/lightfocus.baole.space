@@ -1,3 +1,5 @@
+import { Button, Checkbox, Panel, Slider } from '../../../components/ui';
+
 interface ControlsPanelProps {
   uiHidden: boolean;
   isPaused: boolean;
@@ -42,70 +44,51 @@ export default function ControlsPanel({
   onOpenCreateModal,
 }: ControlsPanelProps) {
   return (
-    <div
-      className={`celestial-panel ${uiHidden ? 'ui-hidden' : ''}`}
-      style={{
-        top: 20,
-        left: 20,
-        width: 240,
-        maxHeight: 'calc(100vh - 100px)',
-        overflowY: 'auto',
-      }}
+    <Panel
+      className={`${uiHidden ? 'ui-hidden' : ''} w-60 max-h-[calc(100vh-100px)] overflow-y-auto`}
+      style={{ top: 20, left: 20 }}
     >
-      <div
-        className="panel-header"
-        style={{
-          fontSize: 11,
-          fontWeight: 700,
-          color: 'var(--accent-1)',
-          letterSpacing: 1,
-          marginBottom: 15,
-        }}
-      >
-        🎛️ MISSION CONTROL
+      <div className="px-2 py-2 bg-gradient-to-br from-accent-1 to-accent-2 border-b border-panel -m-0 mb-4 rounded-t-lg">
+        <h3 className="m-0 font-space font-bold text-[11px] text-white uppercase tracking-widest">
+          MISSION CONTROL
+        </h3>
       </div>
-      <div className="control-content">
+
+      <div className="px-2 pb-2 space-y-4">
         <div className="control-group">
-          <button className="control-btn" onClick={onTogglePause}>
-            {isPaused ? '▶️ Resume' : '⏸ Pause'}
-          </button>
-          <button className="control-btn" onClick={onOpenCreateModal}>
-            ➕ New Planet
-          </button>
-          <label className="control-label">Animation Speed</label>
-          <input
-            type="range"
-            min="0.2"
-            max="5"
-            step="0.1"
+          <div className="flex gap-2">
+            <Button size="sm" variant="control" onClick={onTogglePause} fullWidth>
+              {isPaused ? '▶️ Resume' : '⏸ Pause'}
+            </Button>
+            <Button size="sm" variant="control" onClick={onOpenCreateModal} fullWidth>
+              🪐 New Planet
+            </Button>
+          </div>
+
+          <Slider
+            label="Animation Speed"
+            min={0.2}
+            max={5}
+            step={0.1}
             value={animationSpeed}
             onChange={(e) => onSpeedChange(parseFloat(e.target.value))}
-            className="control-slider"
+            valueFormatter={(v) => `${v.toFixed(1)}x`}
+            className="mt-3"
           />
-          <span className="control-value">{animationSpeed.toFixed(1)}x</span>
         </div>
 
         <div className="control-group">
-          <label className="control-label">Bloom Strength</label>
-          <input
-            type="range"
-            min="0.3"
-            max="3"
-            step="0.1"
+          <Slider
+            label="Bloom Strength"
+            min={0.3}
+            max={3}
+            step={0.1}
             value={manualBloomStrength}
             onChange={(e) => onBloomStrengthChange(parseFloat(e.target.value))}
-            className="control-slider"
+            valueFormatter={(v) => v.toFixed(1)}
           />
-          <span className="control-value">{manualBloomStrength.toFixed(1)}</span>
           {!isBloomManual && (
-            <div
-              style={{
-                fontSize: 9,
-                color: 'var(--accent-2)',
-                marginTop: 4,
-                fontStyle: 'italic',
-              }}
-            >
+            <div className="text-[9px] text-accent-2 mt-1 italic">
               Auto-adjusted by task count
             </div>
           )}
@@ -113,46 +96,42 @@ export default function ControlsPanel({
 
         <div className="control-group">
           <label className="control-label">Toggles</label>
-          <label className="checkbox-label">
-            <input
-              type="checkbox"
+          <div className="space-y-2">
+            <Checkbox
+              label="Planet Labels"
               checked={showLabels}
               onChange={onToggleLabels}
             />
-            <span>Planet Labels</span>
-          </label>
-          <label className="checkbox-label">
-            <input
-              type="checkbox"
+            <Checkbox
+              label="Moon Labels"
               checked={showMoonLabels}
               onChange={onToggleMoonLabels}
             />
-            <span>Moon Labels</span>
-          </label>
-          <label className="checkbox-label">
-            <input
-              type="checkbox"
+            <Checkbox
+              label="Orbit Rings"
               checked={showOrbits}
               onChange={onToggleOrbits}
             />
-            <span>Orbit Rings</span>
-          </label>
-          <label className="checkbox-label">
-            <input type="checkbox" checked={showMoons} onChange={onToggleMoons} />
-            <span>Moons</span>
-          </label>
+            <Checkbox
+              label="Moons"
+              checked={showMoons}
+              onChange={onToggleMoons}
+            />
+          </div>
         </div>
 
         <div className="control-group">
           <label className="control-label">Camera</label>
-          <button className="control-btn" onClick={onResetCamera}>
-            🎥 Reset View
-          </button>
-          <button className="control-btn" onClick={onToggleUI}>
-            {uiHidden ? '👁 Show UI' : '🫥 Hide UI'}
-          </button>
+          <div className="flex flex-col gap-2">
+            <Button size="sm" variant="control" onClick={onResetCamera} fullWidth>
+              🎥 Reset View
+            </Button>
+            <Button size="sm" variant="control" onClick={onToggleUI} fullWidth>
+              {uiHidden ? '👁 Show UI' : '🫥 Hide UI'}
+            </Button>
+          </div>
         </div>
       </div>
-    </div>
+    </Panel>
   );
 }
