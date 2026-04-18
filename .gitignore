@@ -27,3 +27,5 @@ docs
 ref
 .vite
 .env
+.github
+.vscode
