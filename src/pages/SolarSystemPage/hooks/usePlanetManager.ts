@@ -17,6 +17,33 @@ const ORBIT_DISTANCES: Record<BullseyeRank, number> = {
   7: 85,
 };
 
+// Planet texture paths
+const PLANET_TEXTURES = [
+  "/textures/mercury.jpg",
+  "/textures/venus.jpg",
+  "/textures/earth.jpg",
+  "/textures/mars.jpg",
+  "/textures/jupiter.jpg",
+  "/textures/saturn.jpg",
+  "/textures/uranus.jpg",
+  "/textures/neptune.jpg",
+];
+
+// Texture loader singleton
+const textureLoader = new THREE.TextureLoader();
+
+// Deterministic texture selection based on task ID
+function getTextureForTask(taskId: string): string {
+  // Hash the task ID to get a consistent number
+  const hash = taskId.split("").reduce((acc, char) => {
+    return ((acc << 5) - acc) + char.charCodeAt(0);
+  }, 0);
+
+  // Use modulo to select texture index
+  const index = Math.abs(hash) % PLANET_TEXTURES.length;
+  return PLANET_TEXTURES[index];
+}
+
 function planetSize(complexity: Complexity): number {
   return 0.6 + complexity * 0.3;
 }
@@ -72,10 +99,15 @@ export function usePlanetManager(
         const size = planetSize(task.complexity as Complexity);
         const color = new THREE.Color(task.color);
 
-        // Create planet mesh
+        // Create planet mesh with texture
         const geo = new THREE.SphereGeometry(size, 64, 64);
+        const texturePath = getTextureForTask(task.id);
+        const texture = textureLoader.load(texturePath);
+        texture.colorSpace = THREE.SRGBColorSpace;
+
         const mat = new THREE.MeshStandardMaterial({
-          color,
+          map: texture,
+          color: new THREE.Color(1, 1, 1), // White to not tint the texture
           metalness: 0.15,
           roughness: 0.7,
           emissive: color.clone().multiplyScalar(0.15),
