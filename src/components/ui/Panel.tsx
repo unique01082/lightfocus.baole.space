@@ -36,6 +36,23 @@ export default function Panel({
     'ease-out',
     'font-space',
     'z-[100]',
+    // Tech corner decorations
+    'before:absolute',
+    'before:top-0',
+    'before:left-0',
+    'before:w-4',
+    'before:h-4',
+    'before:border-t-2',
+    'before:border-l-2',
+    'before:border-cyan-400/60',
+    'after:absolute',
+    'after:bottom-0',
+    'after:right-0',
+    'after:w-4',
+    'after:h-4',
+    'after:border-b-2',
+    'after:border-r-2',
+    'after:border-cyan-400/60',
   ];
 
   if (position) {
@@ -48,6 +65,14 @@ export default function Panel({
 
   return (
     <div className={`${baseClasses.join(' ')} ${className}`} style={style}>
+      {/* Scanline overlay */}
+      <div className="absolute inset-0 pointer-events-none opacity-5 rounded-lg" style={{
+        backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(255,255,255,0.1) 2px, rgba(255,255,255,0.1) 4px)'
+      }} />
+      {/* Top-right corner decoration */}
+      <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-cyan-400/60" />
+      {/* Bottom-left corner decoration */}
+      <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-cyan-400/60" />
       {children}
     </div>
   );

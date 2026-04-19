@@ -33,17 +33,22 @@ export default function TaskListPanel({
 
   return (
     <Panel
-      className={`${uiHidden ? 'ui-hidden' : ''} ${minimized ? 'w-auto' : 'w-[260px]'} ${minimized ? 'max-h-auto' : 'max-h-[60vh] overflow-hidden'} transition-all duration-300`}
+      className={`${uiHidden ? 'ui-hidden' : ''} ${minimized ? 'w-auto' : 'w-[260px]'} ${minimized ? 'max-h-auto' : 'max-h-[60vh] overflow-hidden'} transition-all duration-300 shadow-[0_0_20px_rgba(168,85,247,0.3)]`}
       style={{ top: 20, right: 20 }}
     >
       <div
-        className="px-2 py-2 bg-gradient-to-br from-accent-1 to-accent-2 border-b border-panel -m-0 mb-4 rounded-t-lg cursor-pointer hover:opacity-90 transition-opacity flex items-center justify-between"
+        className={`px-3 py-2 bg-gradient-to-br from-purple-500/20 to-pink-600/20 border-b border-purple-400/40 -m-0 ${minimized ? '' : 'mb-4'} rounded-t-lg cursor-pointer hover:bg-purple-500/30 transition-all flex items-center justify-between group`}
         onClick={() => setMinimized(!minimized)}
       >
-        <h3 className="m-0 font-space font-bold text-[11px] text-white uppercase tracking-widest">
-          CELESTIAL BODIES
-        </h3>
-        <span className="text-white text-xs">{minimized ? '▼' : '▲'}</span>
+        {/* Glowing line effect */}
+        <div className="absolute -top-px left-0 right-0 h-px bg-gradient-to-r from-transparent via-purple-400 to-transparent opacity-60" />
+        <div className="flex items-center gap-2">
+          <span className="text-purple-400 text-sm animate-pulse">◆</span>
+          <h3 className="m-0 font-space font-bold text-[11px] text-purple-100 uppercase tracking-[0.2em] drop-shadow-[0_0_8px_rgba(168,85,247,0.8)]">
+            CELESTIAL BODIES
+          </h3>
+        </div>
+        <span className="text-purple-300 text-xs group-hover:text-purple-100 transition-colors">{minimized ? '▼' : '▲'}</span>
       </div>
 
       {!minimized && (
@@ -88,31 +93,36 @@ export default function TaskListPanel({
                               onClick={() => onSelectTask(t)}
                               className={`
                                 px-2.5 py-1.5
-                                rounded
+                                rounded-md
                                 text-[11px]
                                 cursor-pointer
                                 border-l-[3px]
                                 transition-all
                                 duration-200
+                                relative
+                                hover:shadow-[0_0_8px_rgba(34,211,238,0.2)]
                                 ${isSelected
-                                  ? 'bg-white/15'
-                                  : 'bg-white/5 hover:bg-white/10'
+                                  ? 'bg-white/15 border-opacity-100 shadow-[0_0_10px_rgba(34,211,238,0.3)]'
+                                  : 'bg-white/5 hover:bg-white/10 border-opacity-60'
                                 }
                               `}
                               style={{ borderLeftColor: t.color }}
                             >
-                              <div className="font-semibold mb-0.5">{t.title}</div>
-                              <div className="text-[9px] text-text-muted flex gap-2">
-                                <span className="uppercase">{t.priority}</span>
-                                <span>C{t.complexity}</span>
+                              <div className="font-bold mb-0.5 drop-shadow-[0_0_4px_rgba(255,255,255,0.3)]">{t.title}</div>
+                              <div className="text-[9px] text-cyan-200/70 flex gap-2">
+                                <span className="uppercase font-semibold">{t.priority}</span>
+                                <span className="text-purple-300/80">C{t.complexity}</span>
                                 {t.subtasks && t.subtasks.length > 0 && (
-                                  <span>
+                                  <span className="text-pink-300/80">
                                     🌙{' '}
                                     {t.subtasks.filter((s) => s.completed).length}/
                                     {t.subtasks.length}
                                   </span>
                                 )}
                               </div>
+                              {isSelected && (
+                                <div className="absolute top-1/2 -translate-y-1/2 -right-1 w-1 h-3/4 bg-cyan-400 rounded-l" />
+                              )}
                             </div>
                           );
                         })}
@@ -140,20 +150,26 @@ export default function TaskListPanel({
                       onClick={() => onSelectTask(t)}
                       className={`
                         px-2.5 py-1.5
-                        rounded
+                        rounded-md
                         text-[11px]
                         cursor-pointer
                         border-l-[3px]
-                        opacity-60
+                        opacity-50
                         line-through
+                        hover:opacity-70
+                        transition-all
+                        relative
                         ${isSelected
-                          ? 'bg-white/15'
+                          ? 'bg-white/15 shadow-[0_0_8px_rgba(34,211,238,0.2)]'
                           : 'bg-white/5 hover:bg-white/10'
                         }
                       `}
                       style={{ borderLeftColor: t.color }}
                     >
-                      {t.title}
+                      <span className="text-green-400/70">✓</span> {t.title}
+                      {isSelected && (
+                        <div className="absolute top-1/2 -translate-y-1/2 -right-1 w-1 h-3/4 bg-cyan-400/50 rounded-l" />
+                      )}
                     </div>
                   );
                 })}
