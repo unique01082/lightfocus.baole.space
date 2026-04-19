@@ -91,7 +91,7 @@ export default function SolarSystem() {
   const rankedTasks = rankTasks(tasks);
 
   return (
-    <>
+    <div className="solar-system-cursors">
       <ViewModeSwitcher />
 
       <div
@@ -200,6 +200,6 @@ export default function SolarSystem() {
           loading={taskOps.creating}
         />
       )}
-    </>
+    </div>
   );
 }
