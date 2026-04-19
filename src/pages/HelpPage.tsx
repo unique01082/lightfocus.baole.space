@@ -30,7 +30,7 @@ export default function HelpPage() {
           <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-300 via-pink-300 to-purple-300 bg-clip-text text-transparent mb-3">
             Help & Guide
           </h1>
-          <p className="text-purple-200 text-lg">Learn how to use LightFocus — the Bullseye Task Manager</p>
+          <p className="text-purple-200 text-lg">Learn how to use LightFocus — the task manager that learns YOUR productivity DNA</p>
         </div>
 
         <div className="grid md:grid-cols-2 gap-6 mb-8">

@@ -72,7 +72,7 @@ export default function ControlsPanel({
 
   return (
     <Panel
-      className={`${uiHidden ? 'ui-hidden' : ''} ${minimized ? 'w-auto' : 'w-60'} ${minimized ? 'max-h-auto' : 'max-h-[calc(100vh-100px)]'} transition-all duration-300`}
+      className={`${uiHidden ? 'ui-hidden' : ''} ${minimized ? 'w-auto' : 'w-60'} ${minimized ? 'max-h-auto' : 'max-h-[80vh]'} transition-all duration-300`}
       style={{ top: 20, left: 20 }}
     >
       <div

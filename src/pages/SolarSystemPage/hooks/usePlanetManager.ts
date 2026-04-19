@@ -175,7 +175,7 @@ export function usePlanetManager(
           document.body.appendChild(moonLabel);
 
           // Varied speed: 0.005 – 0.015 (slower than before)
-          const moonSpeed = 0.005 + seededRand(10) * 0.01;
+          const moonSpeed = (0.005 + seededRand(10) * 0.01) / 5;
 
           moons.push({
             subtask: sub,
@@ -205,7 +205,7 @@ export function usePlanetManager(
 
     // Create asteroid belt for completed tasks
     const completedTasks = tasks.filter((t) => t.completed);
-    const asteroidBeltDistance = 95; // Slightly closer so they're visible
+    const asteroidBeltDistance = 120; // Slightly closer so they're visible
     const asteroidBeltWidth = 18; // Spread of the belt
 
     // Add fake/decorative asteroids to the belt (small, rocky grey) - they orbit!
