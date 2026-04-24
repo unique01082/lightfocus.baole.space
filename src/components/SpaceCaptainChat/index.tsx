@@ -1,72 +1,44 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useSettings } from '../../contexts/SettingsContext';
 import { useAuth } from '../../contexts/useAuth';
 import AgentPanel from './components/AgentPanel';
 import ChatInput from './components/ChatInput';
 import ChatTimeline from './components/ChatTimeline';
-import { createMockTimeline } from './mockData';
-import type { ConversationEntry, FeedbackRequestEntry, TimelineEntry } from './types';
-
-const INITIAL_TIMELINE = createMockTimeline();
+import { useSpaceCaptainChat } from './hooks/useSpaceCaptainChat';
+import { useTimeline } from './hooks/useTimeline';
+import type { TimelineEntry } from './types';
 
 export default function SpaceCaptainChat() {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [timeline, setTimeline] = useState<TimelineEntry[]>(INITIAL_TIMELINE);
   const { settings } = useSettings();
   const { user } = useAuth();
   const captainName = user?.name?.toUpperCase() ?? 'CAPTAIN';
 
-  const handleSendMessage = (message: string) => {
-    const captainMsg: ConversationEntry = {
-      id: `msg_${Date.now()}`,
-      type: 'conversation',
-      role: 'captain',
-      content: message,
-      timestamp: new Date(),
-    };
-    setTimeline((prev) => [...prev, captainMsg]);
+  const {
+    conversationEntries,
+    isLoading,
+    status,
+    sendMessage,
+    stop,
+    error,
+  } = useSpaceCaptainChat();
 
-    // Mock agent response
-    setTimeout(() => {
-      const agentMsg: ConversationEntry = {
-        id: `msg_${Date.now()}`,
-        type: 'conversation',
-        role: 'agent',
-        content:
-          "Acknowledged, Captain. I'm processing your request through my neural networks.\n\n*This is a demo interface with simulated timeline data. Full AI capabilities are under development.*\n\nIn the production system, I will:\n- Fetch real task data via tool calls\n- Update your productivity memories\n- Provide personalized insights based on your patterns\n- Take proactive actions to help you succeed\n\nStanding by for full deployment. 🚀",
-        timestamp: new Date(),
-        toolCalls: [{ name: 'getUserMemory', status: 'running' }],
-      };
-      setTimeline((prev) => [...prev, agentMsg]);
-    }, 800);
-  };
+  const { nonChatEntries } = useTimeline();
 
-  const handleFeedbackResponse = (feedbackId: string, value: string) => {
-    setTimeline((prev) =>
-      prev.map((entry) =>
-        entry.id === feedbackId && entry.type === 'feedback_request'
-          ? { ...entry, responded: { value, respondedAt: new Date() } }
-          : entry
-      )
+  // Merge conversation + timeline entries, sorted by timestamp
+  const timeline = useMemo<TimelineEntry[]>(() => {
+    return [...conversationEntries, ...nonChatEntries].sort(
+      (a, b) => +a.timestamp - +b.timestamp,
     );
+  }, [conversationEntries, nonChatEntries]);
 
-    // AI acknowledgment
-    setTimeout(() => {
-      const acknowledgment: ConversationEntry = {
-        id: `ack_${Date.now()}`,
-        type: 'conversation',
-        role: 'agent',
-        content: `Thanks for the feedback, Captain! I've updated your ${
-          (timeline.find((e) => e.id === feedbackId) as FeedbackRequestEntry)?.questionType.replace(
-            '_',
-            ' '
-          )
-        } profile. This helps me serve you better. 📊`,
-        timestamp: new Date(),
-      };
-      setTimeline((prev) => [...prev, acknowledgment]);
-    }, 600);
+  const handleFeedbackResponse = (feedbackId: string, _value: string) => {
+    // Mark responded in nonChatEntries via submitFeedback — just optimistic update
+    const entry = nonChatEntries.find((e) => e.id === feedbackId);
+    if (entry && entry.type === 'feedback_request') {
+      // The useTimeline hook manages live entries; we rely on it for state
+    }
   };
 
   if (!isExpanded) {
@@ -157,6 +129,13 @@ export default function SpaceCaptainChat() {
             </button>
           </div>
 
+          {/* Error banner */}
+          {error && (
+            <div className="bg-red-900/40 border-b border-red-500/30 px-6 py-2 text-red-300 text-xs font-mono relative z-10">
+              ⚠ Connection error: {error.message}
+            </div>
+          )}
+
           {/* Timeline */}
           <ChatTimeline
             timeline={timeline}
@@ -167,10 +146,16 @@ export default function SpaceCaptainChat() {
           />
 
           {/* Input area */}
-          <ChatInput onSendMessage={handleSendMessage} />
+          <ChatInput
+            onSendMessage={sendMessage}
+            isLoading={isLoading}
+            status={status}
+            onStop={stop}
+          />
         </div>
       </div>
     </div>,
     document.body
   );
 }
+

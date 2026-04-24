@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router';
-import { useSettings } from '../contexts/SettingsContext';
+import { PERSONALITY_OPTIONS, useSettings } from '../contexts/SettingsContext';
 
 export default function SettingsPage() {
   const { settings, updateSettings, availableImages } = useSettings();
@@ -57,6 +57,28 @@ export default function SettingsPage() {
               </button>
             </div>
             <p className="text-xs text-purple-400/60">Current: {settings.agentName}</p>
+          </div>
+
+          {/* Agent Personality */}
+          <div className="space-y-3">
+            <label className="text-sm text-purple-300/80 font-medium">AI Personality</label>
+            <div className="grid grid-cols-2 gap-3">
+              {PERSONALITY_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => updateSettings({ agentPersonality: opt.value })}
+                  className={`text-left p-3 rounded-xl border-2 transition-all duration-200
+                    ${settings.agentPersonality === opt.value
+                      ? 'border-indigo-400 bg-indigo-900/50 shadow-lg shadow-indigo-500/20'
+                      : 'border-white/10 hover:border-purple-400/40 bg-black/20'
+                    }`}
+                >
+                  <div className="text-lg mb-1">{opt.emoji}</div>
+                  <div className="text-white text-sm font-bold font-mono">{opt.label}</div>
+                  <div className="text-indigo-300/60 text-xs mt-0.5">{opt.description}</div>
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Agent Image */}

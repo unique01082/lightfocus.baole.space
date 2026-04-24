@@ -1,0 +1,16 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../lightfocus-ai"
+		},
+		{
+			"path": "../lightfocus-api"
+		}
+	],
+	"settings": {
+		"prisma.pinToPrisma6": true
+	}
+}

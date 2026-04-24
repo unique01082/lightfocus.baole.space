@@ -1,5 +1,6 @@
 import { useRequest } from 'ahooks';
 import { createContext, useContext, type ReactNode } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 import { subtasks as subtasksApi, tasks as tasksApi } from '../services/lf';
 import type { LF } from '../services/lf/typings';
 import type { Complexity, Priority, RankedTask, Task } from '../types/task';
@@ -36,6 +37,7 @@ interface TaskContextValue {
 const TaskContext = createContext<TaskContextValue | undefined>(undefined);
 
 export function TaskProvider({ children }: { children: ReactNode }) {
+  const {user} = useAuth();
   const {
     data: { data: tasks = [] } = {},
     loading,
@@ -47,6 +49,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     {
       defaultParams: [{ limit: 1000, offset: 0 }],
       onSuccess: ({ data }) => console.log('Tasks loaded:', data.length),
+      ready: !!user,
     },
   );
 

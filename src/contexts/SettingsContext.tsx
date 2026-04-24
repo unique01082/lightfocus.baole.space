@@ -7,9 +7,19 @@ const AI_AGENT_IMAGES = [
   '/images/ai_agent_images/627385829_18110479237656336_8980509483731838600_n.jpg',
 ];
 
+export type AgentPersonality = 'friendly' | 'professional' | 'motivational' | 'strict';
+
+export const PERSONALITY_OPTIONS: { value: AgentPersonality; label: string; emoji: string; description: string }[] = [
+  { value: 'friendly', label: 'Friendly', emoji: '😊', description: 'Warm, encouraging, conversational' },
+  { value: 'professional', label: 'Professional', emoji: '💼', description: 'Precise, business-like, structured' },
+  { value: 'motivational', label: 'Motivational', emoji: '🔥', description: 'High-energy, inspiring, celebratory' },
+  { value: 'strict', label: 'Strict Coach', emoji: '⚡', description: 'Direct, no-nonsense, results-focused' },
+];
+
 interface Settings {
   agentName: string;
   agentImage: string;
+  agentPersonality: AgentPersonality;
 }
 
 interface SettingsContextValue {
@@ -23,6 +33,7 @@ const STORAGE_KEY = 'lightfocus-settings';
 const DEFAULT_SETTINGS: Settings = {
   agentName: 'ARIA-7',
   agentImage: AI_AGENT_IMAGES[0],
+  agentPersonality: 'friendly',
 };
 
 const SettingsContext = createContext<SettingsContextValue | undefined>(undefined);
