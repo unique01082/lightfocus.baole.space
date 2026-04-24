@@ -68,8 +68,8 @@ export default function SpaceCaptainChat() {
   return createPortal(
     <div
       className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-[9999] animate-fadeIn"
-      onWheel={(e) => e.preventDefault()}
-      onTouchMove={(e) => e.preventDefault()}
+      onWheel={(e) => e.stopPropagation()}
+      onTouchMove={(e) => e.stopPropagation()}
     >
       <div className="absolute inset-0" onClick={() => setIsExpanded(false)} />
 

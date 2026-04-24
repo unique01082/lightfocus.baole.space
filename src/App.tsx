@@ -1,16 +1,17 @@
 import { BrowserRouter, Route, Routes } from 'react-router';
-import pk from '../package.json';
 import './App.css';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
-import SpaceCaptainChat from './components/SpaceCaptainChat';
+import { AuthenticatedLayout, AuthLayout, MinimalLayout, PublicLayout } from './components/layouts';
 import { AuthProvider } from './contexts/AuthContext';
 import { SettingsProvider } from './contexts/SettingsContext';
 import { TaskProvider } from './contexts/TaskContext';
+import AboutPage from './pages/AboutPage';
 import AuthCallbackPage from './pages/AuthCallbackPage';
 import AuthPage from './pages/AuthPage';
 import BullseyePage from './pages/BullseyePage';
 import CardsPage from './pages/CardsPage';
 import HelpPage from './pages/HelpPage';
+import NotFoundPage from './pages/NotFoundPage';
 import SettingsPage from './pages/SettingsPage';
 import ShortcutsPage from './pages/ShortcutsPage';
 import SolarSystem from './pages/SolarSystemPage';
@@ -20,80 +21,44 @@ export default function App() {
   return (
     <AuthProvider>
       <SettingsProvider>
-      <TaskProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/auth" element={<AuthPage />} />
-            <Route path="/auth/callback" element={<AuthCallbackPage />} />
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <SolarSystem />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/bullseye"
-              element={
-                <ProtectedRoute>
-                  <BullseyePage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/tasks"
-              element={
-                <ProtectedRoute>
-                  <TaskListPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/cards"
-              element={
-                <ProtectedRoute>
-                  <CardsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/help"
-              element={
-                <ProtectedRoute>
-                  <HelpPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/shortcuts"
-              element={
-                <ProtectedRoute>
-                  <ShortcutsPage />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/settings"
-              element={
-                <ProtectedRoute>
-                  <SettingsPage />
-                </ProtectedRoute>
-              }
-            />
-          </Routes>
+        <TaskProvider>
+          <BrowserRouter>
+            <Routes>
+              {/* Auth routes - minimal layout, no nav */}
+              <Route element={<AuthLayout />}>
+                <Route path="/auth" element={<AuthPage />} />
+                <Route path="/auth/callback" element={<AuthCallbackPage />} />
+              </Route>
 
-          <SpaceCaptainChat />
+              {/* Public routes - navbar + footer, no auth required */}
+              <Route element={<PublicLayout />}>
+                <Route path="/help" element={<HelpPage />} />
+                <Route path="/about" element={<AboutPage />} />
+              </Route>
 
-          <footer className="nasa-footer">
-            <div className="footer-content">
-              <strong style={{ color: "var(--accent-1)" }}>LIGHT FOCUS</strong>
-              {" "}
-              - Task Manager v{pk.version}
-            </div>
-          </footer>
-        </BrowserRouter>
-      </TaskProvider>
+              {/* Minimal routes - no chrome at all */}
+              <Route element={<MinimalLayout />}>
+                <Route path="*" element={<NotFoundPage />} />
+              </Route>
+
+              {/* Authenticated routes - full layout with nav, chat, footer */}
+              <Route
+                element={
+                  <ProtectedRoute>
+                    <AuthenticatedLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route path="/" element={<SolarSystem />} />
+                <Route path="/bullseye" element={<BullseyePage />} />
+                <Route path="/tasks" element={<TaskListPage />} />
+                <Route path="/cards" element={<CardsPage />} />
+                <Route path="/shortcuts" element={<ShortcutsPage />} />
+                <Route path="/settings" element={<SettingsPage />} />
+              </Route>
+            </Routes>
+          </BrowserRouter>
+        </TaskProvider>
       </SettingsProvider>
     </AuthProvider>
   );
