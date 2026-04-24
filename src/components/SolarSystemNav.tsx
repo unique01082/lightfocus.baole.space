@@ -32,6 +32,35 @@ export default function SolarSystemNav({
             📋 Task List
           </Link>
           <Link
+            to="/bullseye"
+            className="block px-4 py-2.5 text-purple-200 hover:bg-purple-700/50 hover:text-white transition-all duration-200 font-medium"
+            onClick={() => setExpanded(false)}
+          >
+            🎯 Bullseye
+          </Link>
+          <Link
+            to="/cards"
+            className="block px-4 py-2.5 text-purple-200 hover:bg-purple-700/50 hover:text-white transition-all duration-200 font-medium"
+            onClick={() => setExpanded(false)}
+          >
+            🃏 Cards
+          </Link>
+          <Link
+            to="/stats"
+            className="block px-4 py-2.5 text-purple-200 hover:bg-purple-700/50 hover:text-white transition-all duration-200 font-medium"
+            onClick={() => setExpanded(false)}
+          >
+            📊 Stats
+          </Link>
+          <div className="h-px bg-purple-500/30 my-1" />
+          <Link
+            to="/profile"
+            className="block px-4 py-2.5 text-purple-200 hover:bg-purple-700/50 hover:text-white transition-all duration-200 font-medium"
+            onClick={() => setExpanded(false)}
+          >
+            👤 Profile
+          </Link>
+          <Link
             to="/help"
             className="block px-4 py-2.5 text-purple-200 hover:bg-purple-700/50 hover:text-white transition-all duration-200 font-medium"
             onClick={() => setExpanded(false)}

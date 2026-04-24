@@ -1,10 +1,7 @@
 import axios, { type AxiosResponse } from 'axios';
 
-// Base URL: https://lightfocus.baole.space/api
-// LF functions append: /api/v1/tasks
-// Final URL: https://lightfocus.baole.space/api/api/v1/tasks
 export const request = axios.create({
-  baseURL: 'https://lightfocus.baole.space/api',
+  baseURL: 'https://lightfocus.baole.space/core',
   headers: {
     'Content-Type': 'application/json',
   },

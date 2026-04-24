@@ -1,21 +1,11 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'react-router';
 import { useAuth } from '../contexts/AuthContext';
-import SolarSystemNav from './SolarSystemNav';
 
 export default function Navbar() {
   const { user, signOut, isConfigured } = useAuth();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
-
-  // Don't show navbar on auth pages or solar system (has its own UI)
-  if (location.pathname === '/auth' || location.pathname === '/auth/callback') {
-    return null;
-  }
-  // On solar system page, show a minimal floating nav
-  if (location.pathname === '/') {
-    return <SolarSystemNav user={user} isConfigured={isConfigured} signOut={signOut} />;
-  }
 
   return (
     <nav className="bg-gradient-to-r from-purple-900/80 via-indigo-900/80 to-purple-900/80 backdrop-blur-lg border-b border-purple-500/30 shadow-lg shadow-purple-500/20">
@@ -35,30 +25,19 @@ export default function Navbar() {
 
           <div className={`${menuOpen ? 'flex' : 'hidden'} md:flex absolute md:relative top-16 md:top-0 left-0 right-0 flex-col md:flex-row items-center gap-1 md:gap-4 bg-purple-900/95 md:bg-transparent backdrop-blur-xl md:backdrop-blur-none p-4 md:p-0 border-b md:border-0 border-purple-500/30`}>
             <Link
-              to="/"
-              className={`w-full md:w-auto text-center px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                location.pathname === '/'
+              to="/stats"
+              className={`w-full md:w-auto text-center py-2 rounded-lg font-medium transition-all duration-200 ${
+                location.pathname === '/stats'
                   ? 'bg-purple-600/50 text-white shadow-lg shadow-purple-500/30'
                   : 'text-purple-200 hover:bg-purple-700/30 hover:text-white'
               }`}
               onClick={() => setMenuOpen(false)}
             >
-              🪐 Solar System
-            </Link>
-            <Link
-              to="/tasks"
-              className={`w-full md:w-auto text-center px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
-                location.pathname === '/tasks'
-                  ? 'bg-purple-600/50 text-white shadow-lg shadow-purple-500/30'
-                  : 'text-purple-200 hover:bg-purple-700/30 hover:text-white'
-              }`}
-              onClick={() => setMenuOpen(false)}
-            >
-              📋 Task List
+              📊 Stats
             </Link>
             <Link
               to="/help"
-              className={`w-full md:w-auto text-center px-4 py-2 rounded-lg font-medium transition-all duration-200 ${
+              className={`w-full md:w-auto text-center px-2 py-2 rounded-lg font-medium transition-all duration-200 ${
                 location.pathname === '/help'
                   ? 'bg-purple-600/50 text-white shadow-lg shadow-purple-500/30'
                   : 'text-purple-200 hover:bg-purple-700/30 hover:text-white'
@@ -73,16 +52,20 @@ export default function Navbar() {
 
             {user ? (
               <div className="w-full md:w-auto flex flex-col md:flex-row items-center gap-3">
-                <div className="flex items-center gap-2">
+                <Link
+                  to="/profile"
+                  className="flex items-center gap-2 group"
+                  onClick={() => setMenuOpen(false)}
+                >
                   {user.avatarUrl ? (
-                    <img src={user.avatarUrl} alt={user.name} className="w-8 h-8 rounded-full border-2 border-purple-400/50" />
+                    <img src={user.avatarUrl} alt={user.name} className="w-8 h-8 rounded-full border-2 border-purple-400/50 group-hover:border-purple-300 transition-colors" />
                   ) : (
                     <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-sm">
                       {user.name.charAt(0).toUpperCase()}
                     </div>
                   )}
-                  <span className="text-purple-200 font-medium">{user.name}</span>
-                </div>
+                  <span className="text-purple-200 font-medium group-hover:text-white transition-colors">{user.name}</span>
+                </Link>
                 <button
                   className="w-full md:w-auto px-4 py-2 bg-red-600/80 hover:bg-red-500 text-white rounded-lg font-medium transition-all duration-200 hover:shadow-lg hover:shadow-red-500/30"
                   onClick={signOut}

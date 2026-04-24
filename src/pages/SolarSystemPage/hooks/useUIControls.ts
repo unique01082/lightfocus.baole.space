@@ -25,8 +25,8 @@ export function useUIControls(sceneDataRef: React.MutableRefObject<SceneData | n
   );
 
   const [isPaused, setIsPaused] = useState(false);
-  const [animationSpeed, setAnimationSpeed] = useState(0.4);
-  const [manualBloomStrength, setManualBloomStrength] = useState(0.5);
+  const [animationSpeed, setAnimationSpeed] = useState(0.1);
+  const [manualBloomStrength, setManualBloomStrength] = useState(0.3);
 
   // Camera controls
   const [cameraRotateSpeed, setCameraRotateSpeed] = useLocalStorageState(

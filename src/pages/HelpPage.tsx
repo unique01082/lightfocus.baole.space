@@ -1,5 +1,4 @@
 import { Link } from 'react-router';
-import ViewModeSwitcher from '../components/ViewModeSwitcher';
 
 export default function HelpPage() {
   const RingBadge = ({ num, label }: { num: number; label: string }) => {
@@ -24,7 +23,6 @@ export default function HelpPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-purple-950 to-pink-950 py-8 px-4">
-      <ViewModeSwitcher />
       <div className="max-w-6xl mx-auto mt-12">
         <div className="text-center mb-12 animate-in slide-in-from-top duration-700">
           <h1 className="text-5xl font-bold bg-gradient-to-r from-purple-300 via-pink-300 to-purple-300 bg-clip-text text-transparent mb-3">

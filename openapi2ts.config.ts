@@ -9,6 +9,15 @@ const config = [
     templatesFolder: join(__dirname, '.', 'src', 'services', 'templates'),
     serversPath: './src/services',
   },
+  {
+    schemaPath: 'http://localhost:3001/api/docs-json',
+    // schemaPath: 'https://lightfocus.baole.space/ai/api/v1/docs-json',
+    namespace: 'LFAI',
+    projectName: 'lfai',
+    requestLibPath: 'import { request } from "../services"',
+    templatesFolder: join(__dirname, '.', 'src', 'services', 'templates'),
+    serversPath: './src/services',
+  },
 ];
 
 export default config;

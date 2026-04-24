@@ -10,10 +10,21 @@ export default [
   { languageOptions: { globals: globals.browser } },
   pluginJs.configs.recommended,
   ...tseslint.configs.recommended,
+  {
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+    },
+  },
+  {
+    files: ['src/services/**/*.{js,mjs,cjs,ts,jsx,tsx}'],
+    rules: {
+      '@typescript-eslint/no-unused-vars': 'off',
+    },
+  },
   pluginReact.configs.flat.recommended,
   pluginReact.configs.flat['jsx-runtime'],
   {
-    ignores: ['src/.umi/**', 'src/services/**'],
+    ignores: ['src/.umi/**'],
   },
   {
     settings: {
