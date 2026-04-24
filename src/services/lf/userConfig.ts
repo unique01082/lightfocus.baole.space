@@ -1,4 +1,4 @@
-import { request } from "../services"
+import { request } from "../core"
 import type { LF } from "./typings";
 
 /** Get user configuration Returns the ranking algorithm configuration for the authenticated user. Creates default config if none exists. GET /api/v1/user-config */

@@ -1,4 +1,4 @@
-import { request } from "../services"
+import { request } from "../core"
 import type { LF } from "./typings";
 
 /** Get all subtasks Retrieves all subtasks for the specified task GET /api/v1/tasks/${param0}/subtasks */

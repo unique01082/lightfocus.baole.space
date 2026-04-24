@@ -1,4 +1,4 @@
-import { request } from "../services"
+import { request } from "../ai";
 import type { LFAI } from "./typings";
 
 /** Report a user activity Log a user-initiated activity event from the frontend application POST /api/v1/activities */
@@ -39,7 +39,7 @@ export async function getTimeline(
   return request<any>('/api/v1/timeline', {
   method: 'GET',
     params: {
-        
+
         ...params,},
     ...(options || {}),
   });

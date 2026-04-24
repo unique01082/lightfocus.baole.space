@@ -1,4 +1,4 @@
-import { request } from "../services"
+import { request } from "../core"
 import type { LF } from "./typings";
 
 /** List webhook subscriptions Get all webhook subscriptions for the authenticated user GET /api/v1/webhooks/subscriptions */

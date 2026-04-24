@@ -1,4 +1,4 @@
-import { request } from "../services"
+import { request } from "../core"
 import type { LF } from "./typings";
 
 /** Get all tasks Retrieves paginated list of tasks for the authenticated user GET /api/v1/tasks */

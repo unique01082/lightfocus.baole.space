@@ -1,4 +1,4 @@
-import { request } from "../services"
+import { request } from "../core"
 import type { LF } from "./typings";
 
 /** Health check Simple health check endpoint GET /api/v1 */

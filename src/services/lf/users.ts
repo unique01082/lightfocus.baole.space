@@ -1,4 +1,4 @@
-import { request } from "../services"
+import { request } from "../core"
 import type { LF } from "./typings";
 
 /** [Admin] Get all tasks Retrieves all tasks from all users (admin only) GET /api/v1/users/admin/tasks */

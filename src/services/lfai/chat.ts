@@ -1,4 +1,4 @@
-import { request } from "../services"
+import { request } from "../ai";
 import type { LFAI } from "./typings";
 
 /** Stream a chat message Send a message to ARIA-7 and receive a streaming response using Vercel AI SDK data stream protocol POST /api/v1/chat */
