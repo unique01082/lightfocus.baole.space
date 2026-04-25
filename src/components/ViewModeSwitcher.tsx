@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useBoolean, useCreation, useKeyPress, useMemoizedFn } from 'ahooks';
 import { Link, useLocation, useNavigate } from 'react-router';
 import { useAuth } from '../contexts/AuthContext';
 import ShortcutsModal from './ShortcutsModal';
@@ -15,78 +15,81 @@ export default function ViewModeSwitcher() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, isConfigured, signOut } = useAuth();
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [showShortcuts, setShowShortcuts] = useState(false);
+  const [menuOpen, { toggle: toggleMenuOpen, setFalse: closeMenu }] = useBoolean(false);
+  const [showShortcuts, { setTrue: openShortcuts, setFalse: closeShortcuts }] = useBoolean(false);
 
-  // Handle escape key to close modals
-  useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        if (showShortcuts) {
-          setShowShortcuts(false);
-        } else if (menuOpen) {
-          setMenuOpen(false);
-        }
-      }
-    };
-    window.addEventListener('keydown', handleEscape);
-    return () => window.removeEventListener('keydown', handleEscape);
-  }, [showShortcuts, menuOpen]);
+  useKeyPress('esc', () => {
+    if (showShortcuts) {
+      closeShortcuts();
+      return;
+    }
+    if (menuOpen) {
+      closeMenu();
+    }
+  });
 
-  const shortcuts = [
-    {
-      category: 'Navigation',
-      items: [
-        { key: 'H', description: 'Toggle UI visibility in Solar System view' },
-        { key: 'L', description: 'Toggle planet labels' },
-        { key: 'M', description: 'Toggle moon labels' },
-        { key: 'O', description: 'Toggle orbit lines' },
-        { key: 'Space', description: 'Pause/Resume animation' },
-        { key: 'Esc', description: 'Stop following planet / Close modal' },
-        { key: '?', description: 'Show/Hide shortcuts modal' },
-        { key: 'R', description: 'Reset camera view' },
-        { key: 'F', description: 'Toggle fullscreen' },
-      ],
-    },
-    {
-      category: 'Task Management',
-      items: [
-        { key: 'N', description: 'Create new task' },
-        { key: 'Click Planet', description: 'View task details' },
-        { key: 'Double Click Planet', description: 'Follow planet' },
-        { key: 'Enter', description: 'Edit selected task' },
-        { key: 'Delete', description: 'Delete selected task' },
-        { key: 'C', description: 'Toggle task completion' },
-      ],
-    },
-    {
-      category: 'View Modes',
-      items: [
-        { key: '1', description: 'Switch to 3D Solar System view' },
-        { key: '2', description: 'Switch to Bullseye 2D view' },
-        { key: '3', description: 'Switch to Cards view' },
-        { key: '4', description: 'Switch to List view' },
-      ],
-    },
-    {
-      category: 'Bullseye Controls',
-      items: [
-        { key: 'Drag', description: 'Pan the view' },
-        { key: 'Scroll', description: 'Zoom in/out' },
-        { key: 'Reset Button', description: 'Reset pan and zoom' },
-      ],
-    },
-    {
-      category: 'Solar System Camera',
-      items: [
-        { key: '+/-', description: 'Zoom in/out' },
-        { key: 'Arrow Keys', description: 'Rotate camera view' },
-        { key: 'Mouse Drag', description: 'Rotate camera' },
-        { key: 'Right Click + Drag', description: 'Pan camera' },
-        { key: 'Middle Click + Drag', description: 'Zoom camera' },
-      ],
-    },
-  ];
+  const shortcuts = useCreation(
+    () => [
+      {
+        category: 'Navigation',
+        items: [
+          { key: 'H', description: 'Toggle UI visibility in Solar System view' },
+          { key: 'L', description: 'Toggle planet labels' },
+          { key: 'M', description: 'Toggle moon labels' },
+          { key: 'O', description: 'Toggle orbit lines' },
+          { key: 'Space', description: 'Pause/Resume animation' },
+          { key: 'Esc', description: 'Stop following planet / Close modal' },
+          { key: '?', description: 'Show/Hide shortcuts modal' },
+          { key: 'R', description: 'Reset camera view' },
+          { key: 'F', description: 'Toggle fullscreen' },
+        ],
+      },
+      {
+        category: 'Task Management',
+        items: [
+          { key: 'N', description: 'Create new task' },
+          { key: 'Click Planet', description: 'View task details' },
+          { key: 'Double Click Planet', description: 'Follow planet' },
+          { key: 'Enter', description: 'Edit selected task' },
+          { key: 'Delete', description: 'Delete selected task' },
+          { key: 'C', description: 'Toggle task completion' },
+        ],
+      },
+      {
+        category: 'View Modes',
+        items: [
+          { key: '1', description: 'Switch to 3D Solar System view' },
+          { key: '2', description: 'Switch to Bullseye 2D view' },
+          { key: '3', description: 'Switch to Cards view' },
+          { key: '4', description: 'Switch to List view' },
+        ],
+      },
+      {
+        category: 'Bullseye Controls',
+        items: [
+          { key: 'Drag', description: 'Pan the view' },
+          { key: 'Scroll', description: 'Zoom in/out' },
+          { key: 'Reset Button', description: 'Reset pan and zoom' },
+        ],
+      },
+      {
+        category: 'Solar System Camera',
+        items: [
+          { key: '+/-', description: 'Zoom in/out' },
+          { key: 'Arrow Keys', description: 'Rotate camera view' },
+          { key: 'Mouse Drag', description: 'Rotate camera' },
+          { key: 'Right Click + Drag', description: 'Pan camera' },
+          { key: 'Middle Click + Drag', description: 'Zoom camera' },
+        ],
+      },
+    ],
+    [],
+  );
+
+  const handleSignOut = useMemoizedFn(() => {
+    signOut();
+    closeMenu();
+  });
 
   return (
     <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-[999] flex items-center gap-3">
@@ -99,7 +102,7 @@ export default function ViewModeSwitcher() {
       <div className="relative">
         <button
           className="bg-gradient-to-br from-purple-600/90 to-indigo-600/90 backdrop-blur-xl text-white w-10 h-10 rounded-full shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-110 transition-all duration-300 border border-purple-400/30 text-lg font-bold flex items-center justify-center"
-          onClick={() => setMenuOpen(!menuOpen)}
+          onClick={toggleMenuOpen}
         >
           {menuOpen ? '✕' : '☰'}
         </button>
@@ -109,15 +112,15 @@ export default function ViewModeSwitcher() {
             <Link
               to="/help"
               className="block px-4 py-2.5 text-purple-200 hover:bg-purple-700/50 hover:text-white transition-all duration-200 font-medium"
-              onClick={() => setMenuOpen(false)}
+              onClick={closeMenu}
             >
               ❓ Help
             </Link>
             <button
               className="block w-full text-left px-4 py-2.5 text-purple-200 hover:bg-purple-700/50 hover:text-white transition-all duration-200 font-medium"
               onClick={() => {
-                setShowShortcuts(true);
-                setMenuOpen(false);
+                openShortcuts();
+                closeMenu();
               }}
             >
               ⌨️ Shortcuts
@@ -133,7 +136,7 @@ export default function ViewModeSwitcher() {
             <Link
               to="/settings"
               className="block px-4 py-2.5 text-purple-200 hover:bg-purple-700/50 hover:text-white transition-all duration-200 font-medium"
-              onClick={() => setMenuOpen(false)}
+              onClick={closeMenu}
             >
               ⚙️ Settings
             </Link>
@@ -157,10 +160,7 @@ export default function ViewModeSwitcher() {
                 </div>
                 <button
                   className="block w-full px-4 py-2.5 text-left text-red-300 hover:bg-red-900/30 hover:text-red-200 transition-all duration-200 font-medium"
-                  onClick={() => {
-                    signOut();
-                    setMenuOpen(false);
-                  }}
+                  onClick={handleSignOut}
                 >
                   🚪 Sign out
                 </button>
@@ -169,7 +169,7 @@ export default function ViewModeSwitcher() {
               <Link
                 to="/auth"
                 className="block px-4 py-2.5 text-purple-200 hover:bg-purple-700/50 hover:text-white transition-all duration-200 font-medium border-t border-purple-500/30 mt-2 pt-3"
-                onClick={() => setMenuOpen(false)}
+                onClick={closeMenu}
               >
                 🔐 Sign in
               </Link>
@@ -180,7 +180,7 @@ export default function ViewModeSwitcher() {
 
       {/* Shortcuts Modal via Portal */}
       {showShortcuts && (
-        <ShortcutsModal shortcuts={shortcuts} onClose={() => setShowShortcuts(false)} />
+        <ShortcutsModal shortcuts={shortcuts} onClose={closeShortcuts} />
       )}
     </div>
   );

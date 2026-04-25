@@ -1,5 +1,4 @@
-import { useLocalStorageState } from "ahooks";
-import { useState } from "react";
+import { useLocalStorageState, useSetState } from 'ahooks';
 import type { SceneData } from "./useThreeScene";
 
 export function useUIControls(sceneDataRef: React.MutableRefObject<SceneData | null>) {
@@ -24,9 +23,12 @@ export function useUIControls(sceneDataRef: React.MutableRefObject<SceneData | n
     { defaultValue: false },
   );
 
-  const [isPaused, setIsPaused] = useState(false);
-  const [animationSpeed, setAnimationSpeed] = useState(0.1);
-  const [manualBloomStrength, setManualBloomStrength] = useState(0.3);
+  const [runtimeState, setRuntimeState] = useSetState({
+    isPaused: false,
+    animationSpeed: 0.1,
+    manualBloomStrength: 0.3,
+  });
+  const { isPaused, animationSpeed, manualBloomStrength } = runtimeState;
 
   // Camera controls
   const [cameraRotateSpeed, setCameraRotateSpeed] = useLocalStorageState(
@@ -58,7 +60,7 @@ export function useUIControls(sceneDataRef: React.MutableRefObject<SceneData | n
     const sd = sceneDataRef.current;
     if (sd) {
       sd.isPaused = !sd.isPaused;
-      setIsPaused(sd.isPaused);
+      setRuntimeState({ isPaused: sd.isPaused });
     }
   };
 
@@ -66,7 +68,7 @@ export function useUIControls(sceneDataRef: React.MutableRefObject<SceneData | n
     const sd = sceneDataRef.current;
     if (sd) {
       sd.animationSpeed = speed;
-      setAnimationSpeed(speed);
+      setRuntimeState({ animationSpeed: speed });
     }
   };
 
@@ -77,7 +79,7 @@ export function useUIControls(sceneDataRef: React.MutableRefObject<SceneData | n
     sd.manualBloomStrength = strength;
     sd.bloomPass.strength = strength;
     setBloomManualState(true);
-    setManualBloomStrength(strength);
+    setRuntimeState({ manualBloomStrength: strength });
   };
 
   const handleToggleLabels = () => {
@@ -180,7 +182,7 @@ export function useUIControls(sceneDataRef: React.MutableRefObject<SceneData | n
     cameraAutoRotate,
     cameraFOV,
     shadowsEnabled,
-    setIsPaused,
+    setIsPaused: (value: boolean) => setRuntimeState({ isPaused: value }),
     setShowLabelsState,
     setShowMoonLabelsState,
     setShowOrbitsState,

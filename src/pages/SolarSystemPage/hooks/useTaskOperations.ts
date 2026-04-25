@@ -1,5 +1,4 @@
-import { useRequest } from "ahooks";
-import { useState } from "react";
+import { useMemoizedFn, useRequest, useSetState } from 'ahooks';
 import { subtasks as subtasksApi, tasks as tasksApi, type LF } from "../../../services/lf";
 import type { Complexity, Priority, RankedTask } from "../../../types/task";
 import { getRandomColor } from "../../../utils/colors";
@@ -12,24 +11,45 @@ export function useTaskOperations(
   setShowTaskPanel: (show: boolean) => void,
   setSelectedTask: (task: RankedTask | null) => void,
 ) {
-  const [formTitle, setFormTitle] = useState("");
-  const [formDesc, setFormDesc] = useState("");
-  const [formPriority, setFormPriority] = useState<Priority>("medium");
-  const [formComplexity, setFormComplexity] = useState<Complexity>(3);
-  const [formDueDate, setFormDueDate] = useState("");
-  const [formColor, setFormColor] = useState(() => getRandomColor());
+  const [formState, setFormState] = useSetState<{
+    formTitle: string;
+    formDesc: string;
+    formPriority: Priority;
+    formComplexity: Complexity;
+    formDueDate: string;
+    formColor: string;
+  }>({
+    formTitle: '',
+    formDesc: '',
+    formPriority: 'medium',
+    formComplexity: 3,
+    formDueDate: '',
+    formColor: getRandomColor(),
+  });
 
-  const refetchTasks = () =>
-    tasksApi.tasksControllerFindAll({ limit: 1000, offset: 0 }).then(setTasks);
+  const { formTitle, formDesc, formPriority, formComplexity, formDueDate, formColor } = formState;
 
-  const resetForm = () => {
-    setFormTitle("");
-    setFormDesc("");
-    setFormPriority("medium");
-    setFormComplexity(3);
-    setFormDueDate("");
-    setFormColor(getRandomColor());
-  };
+  const setFormTitle = useMemoizedFn((value: string) => setFormState({ formTitle: value }));
+  const setFormDesc = useMemoizedFn((value: string) => setFormState({ formDesc: value }));
+  const setFormPriority = useMemoizedFn((value: Priority) => setFormState({ formPriority: value }));
+  const setFormComplexity = useMemoizedFn((value: Complexity) => setFormState({ formComplexity: value }));
+  const setFormDueDate = useMemoizedFn((value: string) => setFormState({ formDueDate: value }));
+  const setFormColor = useMemoizedFn((value: string) => setFormState({ formColor: value }));
+
+  const refetchTasks = useMemoizedFn(() =>
+    tasksApi.tasksControllerFindAll({ limit: 1000, offset: 0 }).then(setTasks)
+  );
+
+  const resetForm = useMemoizedFn(() => {
+    setFormState({
+      formTitle: '',
+      formDesc: '',
+      formPriority: 'medium',
+      formComplexity: 3,
+      formDueDate: '',
+      formColor: getRandomColor(),
+    });
+  });
 
   const { run: createTask, loading: creating } = useRequest(
     async () => {
@@ -110,11 +130,11 @@ export function useTaskOperations(
     { manual: true },
   );
 
-  const handleDeleteSubtask = async () => {
+  const handleDeleteSubtask = useMemoizedFn(async () => {
     await refetchTasks();
-  };
+  });
 
-  const handleTaskUpdate = (selectedTask: RankedTask | null, updates: Partial<RankedTask>) => {
+  const handleTaskUpdate = useMemoizedFn((selectedTask: RankedTask | null, updates: Partial<RankedTask>) => {
     if (!selectedTask) return;
     const updateData: LF.UpdateTaskDto = {
       title: updates.title,
@@ -134,7 +154,7 @@ export function useTaskOperations(
           });
         }
       });
-  };
+  });
 
   return {
     formTitle,

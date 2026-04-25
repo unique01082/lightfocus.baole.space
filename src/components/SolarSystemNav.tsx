@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useBoolean } from 'ahooks';
 import { Link } from "react-router";
 
 interface SolarSystemNavProps {
@@ -12,13 +12,13 @@ export default function SolarSystemNav({
   isConfigured,
   signOut,
 }: SolarSystemNavProps) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, { toggle: toggleExpanded, setFalse: closeExpanded }] = useBoolean(false);
 
   return (
     <div className="fixed top-4 right-4 z-[1000]">
       <button
         className="bg-gradient-to-br from-purple-600/90 to-indigo-600/90 backdrop-blur-xl text-white w-12 h-12 rounded-full shadow-lg shadow-purple-500/30 hover:shadow-purple-500/50 hover:scale-110 transition-all duration-300 border border-purple-400/30 text-xl font-bold flex items-center justify-center"
-        onClick={() => setExpanded(!expanded)}
+        onClick={toggleExpanded}
       >
         {expanded ? '✕' : '☰'}
       </button>
@@ -27,28 +27,28 @@ export default function SolarSystemNav({
           <Link
             to="/tasks"
             className="block px-4 py-2.5 text-purple-200 hover:bg-purple-700/50 hover:text-white transition-all duration-200 font-medium"
-            onClick={() => setExpanded(false)}
+            onClick={closeExpanded}
           >
             📋 Task List
           </Link>
           <Link
             to="/bullseye"
             className="block px-4 py-2.5 text-purple-200 hover:bg-purple-700/50 hover:text-white transition-all duration-200 font-medium"
-            onClick={() => setExpanded(false)}
+            onClick={closeExpanded}
           >
             🎯 Bullseye
           </Link>
           <Link
             to="/cards"
             className="block px-4 py-2.5 text-purple-200 hover:bg-purple-700/50 hover:text-white transition-all duration-200 font-medium"
-            onClick={() => setExpanded(false)}
+            onClick={closeExpanded}
           >
             🃏 Cards
           </Link>
           <Link
             to="/stats"
             className="block px-4 py-2.5 text-purple-200 hover:bg-purple-700/50 hover:text-white transition-all duration-200 font-medium"
-            onClick={() => setExpanded(false)}
+            onClick={closeExpanded}
           >
             📊 Stats
           </Link>
@@ -56,14 +56,14 @@ export default function SolarSystemNav({
           <Link
             to="/profile"
             className="block px-4 py-2.5 text-purple-200 hover:bg-purple-700/50 hover:text-white transition-all duration-200 font-medium"
-            onClick={() => setExpanded(false)}
+            onClick={closeExpanded}
           >
             👤 Profile
           </Link>
           <Link
             to="/help"
             className="block px-4 py-2.5 text-purple-200 hover:bg-purple-700/50 hover:text-white transition-all duration-200 font-medium"
-            onClick={() => setExpanded(false)}
+            onClick={closeExpanded}
           >
             ❓ Help
           </Link>
@@ -104,7 +104,7 @@ export default function SolarSystemNav({
             <Link
               to="/auth"
               className="block px-4 py-2.5 text-purple-200 hover:bg-purple-700/50 hover:text-white transition-all duration-200 font-medium border-t border-purple-500/30 mt-2 pt-3"
-              onClick={() => setExpanded(false)}
+              onClick={closeExpanded}
             >
               🔐 Sign in
             </Link>

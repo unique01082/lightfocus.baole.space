@@ -1,5 +1,4 @@
-import { useLocalStorageState, useToggle } from 'ahooks';
-import { useState } from 'react';
+import { useCreation, useLocalStorageState, useMemoizedFn, useRequest, useSetState, useToggle } from 'ahooks';
 import { Link } from 'react-router';
 import ViewModeSwitcher from '../components/ViewModeSwitcher';
 import { useTasks } from '../contexts/TaskContext';
@@ -33,56 +32,69 @@ export default function TaskListPage() {
   });
   const [showCreateForm, { toggle: toggleCreateForm, setLeft: hideCreateForm }] = useToggle(false);
 
-  const [formTitle, setFormTitle] = useState('');
-  const [formDesc, setFormDesc] = useState('');
-  const [formPriority, setFormPriority] = useState<Priority>('medium');
-  const [formComplexity, setFormComplexity] = useState<Complexity>(3);
-  const [formDueDate, setFormDueDate] = useState('');
-  const [formColor, setFormColor] = useState(getRandomColor());
-  const [creating, setCreating] = useState(false);
+  const [formState, setFormState] = useSetState<{
+    formTitle: string;
+    formDesc: string;
+    formPriority: Priority;
+    formComplexity: Complexity;
+    formDueDate: string;
+    formColor: string;
+  }>({
+    formTitle: '',
+    formDesc: '',
+    formPriority: 'medium',
+    formComplexity: 3,
+    formDueDate: '',
+    formColor: getRandomColor(),
+  });
 
-  const handleCreate = async () => {
+  const { formTitle, formDesc, formPriority, formComplexity, formDueDate, formColor } = formState;
+
+  const setFormTitle = useMemoizedFn((value: string) => setFormState({ formTitle: value }));
+  const setFormDesc = useMemoizedFn((value: string) => setFormState({ formDesc: value }));
+  const setFormPriority = useMemoizedFn((value: Priority) => setFormState({ formPriority: value }));
+  const setFormComplexity = useMemoizedFn((value: Complexity) => setFormState({ formComplexity: value }));
+  const setFormDueDate = useMemoizedFn((value: string) => setFormState({ formDueDate: value }));
+  const setFormColor = useMemoizedFn((value: string) => setFormState({ formColor: value }));
+
+  const { run: handleCreate, loading: creating } = useRequest(async () => {
     if (!formTitle.trim()) return;
+    await createTaskApi({
+      title: formTitle.trim(),
+      description: formDesc,
+      priority: formPriority,
+      complexity: formComplexity,
+      dueDate: formDueDate || undefined,
+      color: formColor,
+    });
 
-    setCreating(true);
-    try {
-      await createTaskApi({
-        title: formTitle.trim(),
-        description: formDesc,
-        priority: formPriority,
-        complexity: formComplexity,
-        dueDate: formDueDate || undefined,
-        color: formColor,
-      });
+    setFormState({
+      formTitle: '',
+      formDesc: '',
+      formPriority: 'medium',
+      formComplexity: 3,
+      formDueDate: '',
+      formColor: getRandomColor(),
+    });
+    hideCreateForm();
+  }, { manual: true });
 
-      setFormTitle('');
-      setFormDesc('');
-      setFormPriority('medium');
-      setFormComplexity(3);
-      setFormDueDate('');
-      setFormColor(getRandomColor());
-      hideCreateForm();
-    } finally {
-      setCreating(false);
-    }
-  };
-
-  const handleToggleComplete = async (id: string) => {
+  const handleToggleComplete = useMemoizedFn(async (id: string) => {
     await toggleTaskComplete(id);
-  };
+  });
 
-  const handleDeleteTask = async (id: string) => {
+  const handleDeleteTask = useMemoizedFn(async (id: string) => {
     await deleteTaskApi(id);
-  };
+  });
 
-  const handleToggleSubtask = async (taskId: string, subtaskId: string) => {
+  const handleToggleSubtask = useMemoizedFn(async (taskId: string, subtaskId: string) => {
     await toggleSubtaskComplete(taskId, subtaskId);
-  };
+  });
 
-  const handleAddSubtask = async (taskId: string, title: string) => {
+  const handleAddSubtask = useMemoizedFn(async (taskId: string, title: string) => {
     if (!title.trim()) return;
     await addSubtaskApi(taskId, title.trim());
-  };
+  });
 
   if (authLoading) {
     return (
@@ -123,36 +135,47 @@ export default function TaskListPage() {
     );
   }
 
-  let filtered = tasks;
-  if (filter === 'active') {
-    filtered = tasks.filter((t) => !t.completed);
-  } else if (filter === 'completed') {
-    filtered = tasks.filter((t) => t.completed);
-  }
-console.log('filtered :>> ', filtered, filter);
-  let sorted = [...filtered];
-  if (sortBy === 'rank') {
-    const ranked = rankTasks(sorted as any);
-    sorted = ranked as any;
-  } else if (sortBy === 'priority') {
-    const priorityOrder: Record<Priority, number> = {
-      critical: 5,
-      high: 4,
-      medium: 3,
-      low: 2,
-      none: 1,
-    };
-    sorted.sort((a, b) => priorityOrder[b.priority] - priorityOrder[a.priority]);
-  } else if (sortBy === 'dueDate') {
-    sorted.sort((a, b) => {
-      if (!a.dueDate && !b.dueDate) return 0;
-      if (!a.dueDate) return 1;
-      if (!b.dueDate) return -1;
-      return new Date(a.dueDate as any).getTime() - new Date(b.dueDate as any).getTime();
-    });
-  } else if (sortBy === 'created') {
-    sorted.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-  }
+  const sorted = useCreation(() => {
+    let filtered = tasks;
+    if (filter === 'active') {
+      filtered = tasks.filter((t) => !t.completed);
+    } else if (filter === 'completed') {
+      filtered = tasks.filter((t) => t.completed);
+    }
+
+    const nextSorted = [...filtered];
+    if (sortBy === 'rank') {
+      return rankTasks(nextSorted as any) as any;
+    }
+
+    if (sortBy === 'priority') {
+      const priorityOrder: Record<Priority, number> = {
+        critical: 5,
+        high: 4,
+        medium: 3,
+        low: 2,
+        none: 1,
+      };
+      nextSorted.sort((a, b) => priorityOrder[b.priority] - priorityOrder[a.priority]);
+      return nextSorted;
+    }
+
+    if (sortBy === 'dueDate') {
+      nextSorted.sort((a, b) => {
+        if (!a.dueDate && !b.dueDate) return 0;
+        if (!a.dueDate) return 1;
+        if (!b.dueDate) return -1;
+        return new Date(a.dueDate as any).getTime() - new Date(b.dueDate as any).getTime();
+      });
+      return nextSorted;
+    }
+
+    if (sortBy === 'created') {
+      nextSorted.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    }
+
+    return nextSorted;
+  }, [tasks, filter, sortBy]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-purple-950 to-pink-950 py-8 px-4">

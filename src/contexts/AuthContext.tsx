@@ -1,6 +1,6 @@
+import { useMemoizedFn } from 'ahooks';
 import {
     createContext,
-    useCallback,
     useEffect,
     useState,
     type ReactNode,
@@ -68,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [signingOut, setSigningOut] = useState(false);
   const isConfigured = userManager !== null;
 
-  const loadUser = useCallback(async (ou: OidcUser | null) => {
+  const loadUser = useMemoizedFn(async (ou: OidcUser | null) => {
     if (!ou) {
       setOidcUser(null);
       setUser(null);
@@ -84,7 +84,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     const profile = await syncProfile(ou);
     setUser(profile);
-  }, []);
+  });
 
   useEffect(() => {
     if (!userManager) {
@@ -122,7 +122,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, [loadUser]);
 
-  const signIn = useCallback(async () => {
+  const signIn = useMemoizedFn(async () => {
     if (userManager) {
       setSigningIn(true);
       try {
@@ -131,9 +131,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setSigningIn(false);
       }
     }
-  }, []);
+  });
 
-  const signOut = useCallback(async () => {
+  const signOut = useMemoizedFn(async () => {
     setSigningOut(true);
     try {
       localStorage.removeItem('token');
@@ -143,7 +143,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     } finally {
       setSigningOut(false);
     }
-  }, []);
+  });
 
   const isAdmin = user?.role === 'admin';
 

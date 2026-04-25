@@ -1,4 +1,5 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import { useLocalStorageState, useMemoizedFn } from 'ahooks';
+import { createContext, useContext, type ReactNode } from 'react';
 
 const AI_AGENT_IMAGES = [
   '/images/ai_agent_images/471272582_10162293866099275_3729933063458741652_n.jpg',
@@ -39,24 +40,22 @@ const DEFAULT_SETTINGS: Settings = {
 const SettingsContext = createContext<SettingsContextValue | undefined>(undefined);
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
-  const [settings, setSettings] = useState<Settings>(() => {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
+  const [settings = DEFAULT_SETTINGS, setSettings] = useLocalStorageState<Settings>(STORAGE_KEY, {
+    defaultValue: DEFAULT_SETTINGS,
+    serializer: (value) => JSON.stringify(value),
+    deserializer: (stored) => {
+      try {
+        const parsed = JSON.parse(stored) as Partial<Settings>;
         return { ...DEFAULT_SETTINGS, ...parsed };
+      } catch {
+        return DEFAULT_SETTINGS;
       }
-    } catch { /* ignore */ }
-    return DEFAULT_SETTINGS;
+    },
   });
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-  }, [settings]);
-
-  const updateSettings = (updates: Partial<Settings>) => {
-    setSettings((prev) => ({ ...prev, ...updates }));
-  };
+  const updateSettings = useMemoizedFn((updates: Partial<Settings>) => {
+    setSettings((prev) => ({ ...(prev ?? DEFAULT_SETTINGS), ...updates }));
+  });
 
   return (
     <SettingsContext.Provider value={{ settings, updateSettings, availableImages: AI_AGENT_IMAGES }}>

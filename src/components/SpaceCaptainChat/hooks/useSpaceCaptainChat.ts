@@ -1,11 +1,18 @@
 import { useChat } from '@ai-sdk/react';
+import { useCreation, useMemoizedFn, useRequest } from 'ahooks';
 import { DefaultChatTransport, getToolName, isToolUIPart, type UIMessage } from 'ai';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { useSettings } from '../../../contexts/SettingsContext';
-import { AI_URL, clearChatHistory, fetchChatHistory } from '../../../services/ai';
+import { request } from '../../../services/ai';
+import { chat } from '../../../services/lfai';
 import type { ConversationEntry, ToolCall } from '../types';
 
-// ─── Map useChat messages to ConversationEntry ───────────────────────────────
+interface ChatHistoryMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  createdAt: string;
+}
 
 function toConversationEntries(messages: UIMessage[]): ConversationEntry[] {
   return messages
@@ -36,8 +43,6 @@ function toConversationEntries(messages: UIMessage[]): ConversationEntry[] {
     });
 }
 
-// ─── Hook ─────────────────────────────────────────────────────────────────────
-
 export interface UseSpaceCaptainChatReturn {
   conversationEntries: ConversationEntry[];
   isLoading: boolean;
@@ -55,13 +60,14 @@ export function useSpaceCaptainChat(): UseSpaceCaptainChatReturn {
   const { settings } = useSettings();
   const [historyLoaded, setHistoryLoaded] = useState(false);
   const [input, setInput] = useState('');
+  const chatApi = useCreation(() => `${request.defaults.baseURL}/api/v1/chat`, []);
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
 
   const { messages, setMessages, sendMessage: chatSendMessage, status, error, stop } = useChat({
     experimental_throttle: 50,
     transport: new DefaultChatTransport({
-      api: `${AI_URL}/api/v1/chat`,
+      api: chatApi,
       headers: () => ({
         Authorization: `Bearer ${localStorage.getItem('token') ?? ''}`,
       }),
@@ -79,13 +85,18 @@ export function useSpaceCaptainChat(): UseSpaceCaptainChatReturn {
     }),
   });
 
-  // Load conversation history from the backend on mount
-  useEffect(() => {
-    fetchChatHistory(50)
-      .then((history) => {
-        if (history.length > 0) {
+  useRequest(
+    async () => {
+      const history = await chat.getHistory({ limit: 50 });
+      return Array.isArray((history as { messages?: unknown }).messages)
+        ? ((history as { messages: ChatHistoryMessage[] }).messages)
+        : [];
+    },
+    {
+      onSuccess: (historyMessages) => {
+        if (historyMessages.length > 0) {
           setMessages(
-            history.map((m) => ({
+            historyMessages.map((m) => ({
               id: m.id,
               role: m.role,
               parts: [{ type: 'text' as const, text: m.content }],
@@ -93,23 +104,24 @@ export function useSpaceCaptainChat(): UseSpaceCaptainChatReturn {
             })),
           );
         }
-      })
-      .catch(console.warn)
-      .finally(() => setHistoryLoaded(true));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  const sendMessage = useCallback(
-    (text: string) => {
-      chatSendMessage({ text });
+      },
+      onError: (e) => {
+        console.warn(e);
+      },
+      onFinally: () => {
+        setHistoryLoaded(true);
+      },
     },
-    [chatSendMessage],
   );
 
-  const clearConversation = useCallback(() => {
+  const sendMessage = useMemoizedFn((text: string) => {
+    chatSendMessage({ text });
+  });
+
+  const clearConversation = useMemoizedFn(() => {
     setMessages([]);
-    clearChatHistory().catch(console.warn);
-  }, [setMessages]);
+    chat.clearConversation().catch(console.warn);
+  });
 
   const conversationEntries = toConversationEntries(messages);
 

@@ -1,7 +1,7 @@
 import axios, { type AxiosResponse } from 'axios';
 
 export const request = axios.create({
-  baseURL: 'https://lightfocus.baole.space/ai',
+  baseURL: import.meta.env.VITE_AI_URL ?? 'http://localhost:3001',
   headers: {
     'Content-Type': 'application/json',
   },

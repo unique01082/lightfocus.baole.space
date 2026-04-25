@@ -1,15 +1,22 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  fetchTimeline,
-  subscribeToTimeline,
-  type ActivityLogEntry,
-} from '../../../services/ai';
+import { useMemoizedFn, useMount, useRequest, useUnmount } from 'ahooks';
+import { useRef, useState } from 'react';
+import { fetchEventSource } from '../../../lib/fetchEventSource';
+import { request } from '../../../services/ai';
+import { timeline } from '../../../services/lfai';
 import type {
-  UserActivityEntry,
-  SystemEventEntry,
   FeedbackRequestEntry,
+  SystemEventEntry,
   TimelineEntry,
+  UserActivityEntry,
 } from '../types';
+
+interface ActivityLogEntry {
+  id: string;
+  type: 'user_activity' | 'system_event' | 'feedback_request';
+  eventType: string;
+  data: Record<string, unknown>;
+  timestamp: string;
+}
 
 // ─── Mapping helpers ──────────────────────────────────────────────────────────
 
@@ -133,43 +140,114 @@ interface UseTimelineReturn {
 
 export function useTimeline(): UseTimelineReturn {
   const [entries, setEntries] = useState<TimelineEntry[]>([]);
-  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const seenIds = useRef<Set<string>>(new Set());
+  const streamControllerRef = useRef<AbortController | null>(null);
 
-  const addEntry = useCallback((raw: ActivityLogEntry) => {
+  const addEntry = useMemoizedFn((raw: ActivityLogEntry) => {
     if (seenIds.current.has(raw.id)) return;
     const mapped = mapActivityToTimelineEntry(raw);
     if (mapped) {
       seenIds.current.add(raw.id);
       setEntries((prev) => [...prev, mapped].sort((a, b) => +a.timestamp - +b.timestamp));
     }
-  }, []);
+  });
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const raw = await fetchTimeline(50);
-      seenIds.current = new Set();
+  const { run: refresh, loading } = useRequest(
+    async () => {
+      const result = await timeline.getTimeline({ limit: 50 });
+      const raw = Array.isArray((result as { data?: unknown }).data)
+        ? ((result as { data: ActivityLogEntry[] }).data)
+        : [];
+
+      const nextSeen = new Set<string>();
       const mapped = raw.flatMap((e) => {
         const m = mapActivityToTimelineEntry(e);
-        if (m) { seenIds.current.add(e.id); return [m]; }
+        if (m) {
+          nextSeen.add(e.id);
+          return [m];
+        }
         return [];
       });
-      setEntries(mapped.sort((a, b) => +a.timestamp - +b.timestamp));
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : 'Failed to load timeline');
-    } finally {
-      setLoading(false);
-    }
-  }, []);
 
-  useEffect(() => {
-    load();
-    const unsub = subscribeToTimeline(addEntry);
-    return unsub;
-  }, [load, addEntry]);
+      return {
+        mapped: mapped.sort((a, b) => +a.timestamp - +b.timestamp),
+        seen: nextSeen,
+      };
+    },
+    {
+      manual: true,
+      onBefore: () => setError(null),
+      onSuccess: ({ mapped, seen }) => {
+        seenIds.current = seen;
+        setEntries(mapped);
+      },
+      onError: (e) => {
+        setError(e instanceof Error ? e.message : 'Failed to load timeline');
+      },
+    },
+  );
 
-  return { nonChatEntries: entries, loading, error, refresh: load };
+  const startStream = useMemoizedFn(() => {
+    const controller = new AbortController();
+    streamControllerRef.current = controller;
+
+    const baseUrl =
+      typeof request.defaults.baseURL === 'string' && request.defaults.baseURL.length > 0
+        ? request.defaults.baseURL
+        : '/ai';
+
+    fetchEventSource(`${baseUrl}/api/v1/timeline/stream`, {
+      method: 'GET',
+      signal: controller.signal,
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token') ?? ''}`,
+        Accept: 'text/event-stream',
+      },
+      onmessage: (e) => {
+        try {
+          const payload = JSON.parse(e.data) as {
+            type?: string;
+            id?: string;
+            eventType?: string;
+            data?: Record<string, unknown>;
+            timestamp?: string;
+          };
+          if (payload.type === 'connected' || payload.type === 'heartbeat') {
+            return;
+          }
+          if (
+            payload.id
+            && payload.eventType
+            && payload.timestamp
+            && (payload.type === 'user_activity'
+              || payload.type === 'system_event'
+              || payload.type === 'feedback_request')
+          ) {
+            addEntry(payload as ActivityLogEntry);
+          }
+        } catch {
+          // Ignore non-JSON or partial SSE payloads.
+        }
+      },
+      onerror: (err) => {
+        setError(err.message);
+      },
+    }).catch((err) => {
+      if (!(err instanceof Error && err.name === 'AbortError')) {
+        setError(err instanceof Error ? err.message : 'Timeline stream failed');
+      }
+    });
+  });
+
+  useMount(() => {
+    refresh();
+    startStream();
+  });
+
+  useUnmount(() => {
+    streamControllerRef.current?.abort();
+  });
+
+  return { nonChatEntries: entries, loading, error, refresh };
 }

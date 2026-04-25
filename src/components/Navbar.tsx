@@ -1,11 +1,11 @@
-import { useState } from 'react';
+import { useBoolean } from 'ahooks';
 import { Link, useLocation } from 'react-router';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function Navbar() {
   const { user, signOut, isConfigured } = useAuth();
   const location = useLocation();
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuOpen, { toggle: toggleMenuOpen, setFalse: closeMenu }] = useBoolean(false);
 
   return (
     <nav className="bg-gradient-to-r from-purple-900/80 via-indigo-900/80 to-purple-900/80 backdrop-blur-lg border-b border-purple-500/30 shadow-lg shadow-purple-500/20">
@@ -18,7 +18,7 @@ export default function Navbar() {
 
           <button
             className="md:hidden text-white hover:text-purple-300 transition-colors text-2xl"
-            onClick={() => setMenuOpen(!menuOpen)}
+            onClick={toggleMenuOpen}
           >
             {menuOpen ? '✕' : '☰'}
           </button>
@@ -31,7 +31,7 @@ export default function Navbar() {
                   ? 'bg-purple-600/50 text-white shadow-lg shadow-purple-500/30'
                   : 'text-purple-200 hover:bg-purple-700/30 hover:text-white'
               }`}
-              onClick={() => setMenuOpen(false)}
+              onClick={closeMenu}
             >
               📊 Stats
             </Link>
@@ -42,7 +42,7 @@ export default function Navbar() {
                   ? 'bg-purple-600/50 text-white shadow-lg shadow-purple-500/30'
                   : 'text-purple-200 hover:bg-purple-700/30 hover:text-white'
               }`}
-              onClick={() => setMenuOpen(false)}
+              onClick={closeMenu}
             >
               ❓ Help
             </Link>
@@ -55,7 +55,7 @@ export default function Navbar() {
                 <Link
                   to="/profile"
                   className="flex items-center gap-2 group"
-                  onClick={() => setMenuOpen(false)}
+                  onClick={closeMenu}
                 >
                   {user.avatarUrl ? (
                     <img src={user.avatarUrl} alt={user.name} className="w-8 h-8 rounded-full border-2 border-purple-400/50 group-hover:border-purple-300 transition-colors" />
@@ -77,7 +77,7 @@ export default function Navbar() {
               <Link
                 to="/auth"
                 className="w-full md:w-auto text-center px-4 py-2 rounded-lg font-medium text-purple-200 hover:bg-purple-700/30 hover:text-white transition-all duration-200"
-                onClick={() => setMenuOpen(false)}
+                onClick={closeMenu}
               >
                 🔐 Sign in
               </Link>

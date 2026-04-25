@@ -1,5 +1,4 @@
-import { useRequest } from 'ahooks';
-import { useState } from 'react';
+import { useMemoizedFn, useRequest, useSetState } from 'ahooks';
 import { subtasks as subtasksApi, tasks as tasksApi, type LF } from '../../../services/lf';
 import type { Complexity, Priority, Subtask, Task } from '../../../types/task';
 import { getRandomColor } from '../../../utils/colors';
@@ -8,21 +7,41 @@ export function useTaskOperations(
   tasks: Task[],
   setTasks: (tasks: Task[]) => void
 ) {
-  const [formTitle, setFormTitle] = useState('');
-  const [formDesc, setFormDesc] = useState('');
-  const [formPriority, setFormPriority] = useState<Priority>('medium');
-  const [formComplexity, setFormComplexity] = useState<Complexity>(3);
-  const [formDueDate, setFormDueDate] = useState('');
-  const [formColor, setFormColor] = useState(getRandomColor());
+  const [formState, setFormState] = useSetState<{
+    formTitle: string;
+    formDesc: string;
+    formPriority: Priority;
+    formComplexity: Complexity;
+    formDueDate: string;
+    formColor: string;
+  }>({
+    formTitle: '',
+    formDesc: '',
+    formPriority: 'medium',
+    formComplexity: 3,
+    formDueDate: '',
+    formColor: getRandomColor(),
+  });
 
-  const resetForm = () => {
-    setFormTitle('');
-    setFormDesc('');
-    setFormPriority('medium');
-    setFormComplexity(3);
-    setFormDueDate('');
-    setFormColor(getRandomColor());
-  };
+  const { formTitle, formDesc, formPriority, formComplexity, formDueDate, formColor } = formState;
+
+  const setFormTitle = useMemoizedFn((value: string) => setFormState({ formTitle: value }));
+  const setFormDesc = useMemoizedFn((value: string) => setFormState({ formDesc: value }));
+  const setFormPriority = useMemoizedFn((value: Priority) => setFormState({ formPriority: value }));
+  const setFormComplexity = useMemoizedFn((value: Complexity) => setFormState({ formComplexity: value }));
+  const setFormDueDate = useMemoizedFn((value: string) => setFormState({ formDueDate: value }));
+  const setFormColor = useMemoizedFn((value: string) => setFormState({ formColor: value }));
+
+  const resetForm = useMemoizedFn(() => {
+    setFormState({
+      formTitle: '',
+      formDesc: '',
+      formPriority: 'medium',
+      formComplexity: 3,
+      formDueDate: '',
+      formColor: getRandomColor(),
+    });
+  });
 
   const { run: createTask, loading: creating } = useRequest(
     async (taskData: Partial<Task>) => {
