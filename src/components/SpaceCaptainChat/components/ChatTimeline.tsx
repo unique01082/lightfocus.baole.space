@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useRef } from 'react';
+import { useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { TimelineEntry } from '../types';
 import ActivityEntry from './ActivityEntry';
 import ConversationEntry from './ConversationEntry';
@@ -26,6 +26,7 @@ export default function ChatTimeline({
   const scrollContainerRef = useRef<HTMLDivElement | null>(null);
   const shouldFollowBottomRef = useRef(true);
   const previousEntryCountRef = useRef(0);
+  const [isNearBottom, setIsNearBottom] = useState(true);
 
   // Group timeline by date
   const groupedTimeline = useMemo(
@@ -44,7 +45,22 @@ export default function ChatTimeline({
 
     const distanceToBottom =
       element.scrollHeight - element.scrollTop - element.clientHeight;
-    shouldFollowBottomRef.current = distanceToBottom <= BOTTOM_THRESHOLD_PX;
+    const nearBottom = distanceToBottom <= BOTTOM_THRESHOLD_PX;
+
+    shouldFollowBottomRef.current = nearBottom;
+    setIsNearBottom(nearBottom);
+  };
+
+  const scrollToLatest = () => {
+    const element = scrollContainerRef.current;
+    if (!element) return;
+
+    shouldFollowBottomRef.current = true;
+    setIsNearBottom(true);
+    element.scrollTo({
+      top: element.scrollHeight,
+      behavior: 'smooth',
+    });
   };
 
   useLayoutEffect(() => {
@@ -61,6 +77,8 @@ export default function ChatTimeline({
       top: element.scrollHeight,
       behavior: isFirstRender || !hasNewEntry ? 'auto' : 'smooth',
     });
+
+    setIsNearBottom(true);
 
     previousEntryCountRef.current = timeline.length;
   }, [timeline]);
@@ -89,25 +107,41 @@ export default function ChatTimeline({
   };
 
   return (
-    <div
-      ref={scrollContainerRef}
-      onScroll={updateFollowPreference}
-      className="flex-1 overflow-y-auto px-6 py-5 space-y-4 scrollbar-thin relative z-10"
-    >
-      {Object.entries(groupedTimeline).map(([dateStr, entries]) => (
-        <div key={dateStr} className="space-y-4">
-          {/* Date Header */}
-          <TimelineDateHeader dateStr={dateStr} />
+    <div className="relative flex-1 min-h-0 z-10">
+      <div
+        ref={scrollContainerRef}
+        onScroll={updateFollowPreference}
+        className="h-full min-h-0 overflow-y-auto px-6 py-5 space-y-4 scrollbar-thin"
+      >
+        {Object.entries(groupedTimeline).map(([dateStr, entries]) => (
+          <div key={dateStr} className="space-y-4">
+            {/* Date Header */}
+            <TimelineDateHeader dateStr={dateStr} />
 
-          {/* Timeline Entries */}
-          <div className="space-y-5">{entries.map((entry) => renderTimelineEntry(entry))}</div>
-        </div>
-      ))}
+            {/* Timeline Entries */}
+            <div className="space-y-5">{entries.map((entry) => renderTimelineEntry(entry))}</div>
+          </div>
+        ))}
 
-      {timeline.length === 0 && (
-        <div className="flex items-center justify-center h-full text-indigo-400/40 text-sm font-mono">
-          No timeline entries yet. Start a conversation with your AI companion...
-        </div>
+        {timeline.length === 0 && (
+          <div className="flex items-center justify-center h-full text-indigo-400/40 text-sm font-mono">
+            No timeline entries yet. Start a conversation with your AI companion...
+          </div>
+        )}
+      </div>
+
+      {!isNearBottom && timeline.length > 0 && (
+        <button
+          type="button"
+          onClick={scrollToLatest}
+          className="absolute bottom-4 right-6 inline-flex items-center gap-1.5 rounded-full
+            border border-indigo-300/40 bg-slate-900/90 px-3 py-1.5 text-xs font-semibold text-indigo-100
+            shadow-lg shadow-black/30 backdrop-blur-sm transition-all duration-200
+            hover:border-indigo-300/70 hover:bg-indigo-900/90"
+        >
+          <span aria-hidden>↓</span>
+          Jump to latest
+        </button>
       )}
     </div>
   );
