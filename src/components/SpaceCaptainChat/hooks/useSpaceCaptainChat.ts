@@ -1,5 +1,5 @@
 import { useChat } from '@ai-sdk/react';
-import { useCreation, useMemoizedFn, useRequest } from 'ahooks';
+import { useCreation, useInterval, useMemoizedFn, useRequest } from 'ahooks';
 import { DefaultChatTransport, getToolName, isToolUIPart, type UIMessage } from 'ai';
 import { useRef, useState } from 'react';
 import { useSettings } from '../../../contexts/SettingsContext';
@@ -54,12 +54,15 @@ export interface UseSpaceCaptainChatReturn {
   clearConversation: () => void;
   stop: () => void;
   historyLoaded: boolean;
+  unreadChatCount: number;
+  markChatRead: () => void;
 }
 
 export function useSpaceCaptainChat(): UseSpaceCaptainChatReturn {
   const { settings } = useSettings();
   const [historyLoaded, setHistoryLoaded] = useState(false);
   const [input, setInput] = useState('');
+  const [unreadChatCount, setUnreadChatCount] = useState(0);
   const chatApi = useCreation(() => `${request.defaults.baseURL}/api/v1/chat`, []);
   const settingsRef = useRef(settings);
   settingsRef.current = settings;
@@ -123,6 +126,18 @@ export function useSpaceCaptainChat(): UseSpaceCaptainChatReturn {
     chat.clearConversation().catch(console.warn);
   });
 
+  // Poll unread count every 30s
+  useInterval(() => {
+    chat.getUnread()
+      .then((res) => setUnreadChatCount((res as { count: number }).count ?? 0))
+      .catch(() => {});
+  }, 30_000);
+
+  const markChatRead = useMemoizedFn(() => {
+    setUnreadChatCount(0);
+    chat.markRead().catch(console.warn);
+  });
+
   const conversationEntries = toConversationEntries(messages);
 
   return {
@@ -136,5 +151,7 @@ export function useSpaceCaptainChat(): UseSpaceCaptainChatReturn {
     clearConversation,
     stop,
     historyLoaded,
+    unreadChatCount,
+    markChatRead,
   };
 }

@@ -64,9 +64,6 @@ export default function ChatInput({ onSendMessage, isLoading = false, status, on
           </button>
         )}
       </div>
-      <div className="text-indigo-500/40 font-mono text-[10px] mt-1.5 text-center">
-        🌟 UNIFIED ACTIVITY TIMELINE • Conversations + Activities + System Events + Feedback
-      </div>
     </div>
   );
 }

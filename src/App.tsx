@@ -15,7 +15,7 @@ import FeaturesPage from './pages/FeaturesPage';
 import HelpPage from './pages/HelpPage';
 import NotFoundPage from './pages/NotFoundPage';
 import ProfilePage from './pages/ProfilePage';
-import SettingsPage from './pages/SettingsPage';
+import SettingsPage from './pages/SettingsPage/index';
 import ShortcutsPage from './pages/ShortcutsPage';
 import SolarSystem from './pages/SolarSystemPage';
 import StatsPage from './pages/StatsPage';

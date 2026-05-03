@@ -1,5 +1,6 @@
 import { useMemoizedFn, useRequest, useSetState } from 'ahooks';
 import { subtasks as subtasksApi, tasks as tasksApi, type LF } from '../../../services/lf';
+import { timeline as timelineApi } from '../../../services/lfai';
 import type { Complexity, Priority, Subtask, Task } from '../../../types/task';
 import { getRandomColor } from '../../../utils/colors';
 
@@ -59,6 +60,10 @@ export function useTaskOperations(
       if (newTask) {
         setTasks([...tasks, newTask]);
         resetForm();
+        timelineApi.reportActivity({
+          eventType: 'task_created',
+          data: { taskId: newTask.id, title: newTask.title, priority: newTask.priority, complexity: newTask.complexity },
+        }).catch(console.warn);
       }
       return newTask;
     },
@@ -76,6 +81,10 @@ export function useTaskOperations(
       )) as unknown as Task;
       if (updated) {
         setTasks(tasks.map((t) => (t.id === id ? updated : t)));
+        timelineApi.reportActivity({
+          eventType: task.completed ? 'task_uncompleted' : 'task_completed',
+          data: { taskId: id, title: task.title },
+        }).catch(console.warn);
       }
       return updated;
     },
@@ -119,6 +128,10 @@ export function useTaskOperations(
             };
           })
         );
+        timelineApi.reportActivity({
+          eventType: subtask.completed ? 'subtask_uncompleted' : 'subtask_completed',
+          data: { taskId, subtaskTitle: subtask.title },
+        }).catch(console.warn);
       }
       return updatedSubtask;
     },
@@ -143,6 +156,10 @@ export function useTaskOperations(
             };
           })
         );
+        timelineApi.reportActivity({
+          eventType: 'subtask_created',
+          data: { taskId, subtaskTitle: title.trim() },
+        }).catch(console.warn);
       }
       return newSubtask;
     },

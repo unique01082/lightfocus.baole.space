@@ -1,5 +1,6 @@
 import { useMemoizedFn, useRequest, useSetState } from 'ahooks';
 import { subtasks as subtasksApi, tasks as tasksApi, type LF } from "../../../services/lf";
+import { timeline as timelineApi } from "../../../services/lfai";
 import type { Complexity, Priority, RankedTask } from "../../../types/task";
 import { getRandomColor } from "../../../utils/colors";
 import { rankTasks } from "../../../utils/ranking";
@@ -66,6 +67,10 @@ export function useTaskOperations(
         await refetchTasks();
         resetForm();
         setShowCreateModal(false);
+        timelineApi.reportActivity({
+          eventType: 'task_created',
+          data: { taskId: (newTask as any).id, title: formTitle.trim(), priority: formPriority, complexity: formComplexity },
+        }).catch(console.warn);
       }
       return newTask;
     },
@@ -95,6 +100,10 @@ export function useTaskOperations(
         await refetchTasks();
         setShowTaskPanel(false);
         setSelectedTask(null);
+        timelineApi.reportActivity({
+          eventType: task.completed ? 'task_uncompleted' : 'task_completed',
+          data: { taskId: id, title: task.title },
+        }).catch(console.warn);
       }
       return updated;
     },
@@ -108,7 +117,13 @@ export function useTaskOperations(
         { taskId },
         { title: title.trim() },
       );
-      if (newSubtask) await refetchTasks();
+      if (newSubtask) {
+        await refetchTasks();
+        timelineApi.reportActivity({
+          eventType: 'subtask_created',
+          data: { taskId, subtaskTitle: title.trim() },
+        }).catch(console.warn);
+      }
       return newSubtask;
     },
     { manual: true },
@@ -124,7 +139,13 @@ export function useTaskOperations(
         { id: subtaskId, taskId },
         { completed: !subtask.completed },
       );
-      if (updated) await refetchTasks();
+      if (updated) {
+        await refetchTasks();
+        timelineApi.reportActivity({
+          eventType: subtask.completed ? 'subtask_uncompleted' : 'subtask_completed',
+          data: { taskId, subtaskTitle: subtask.title },
+        }).catch(console.warn);
+      }
       return updated;
     },
     { manual: true },
@@ -136,6 +157,7 @@ export function useTaskOperations(
 
   const handleTaskUpdate = useMemoizedFn((selectedTask: RankedTask | null, updates: Partial<RankedTask>) => {
     if (!selectedTask) return;
+    const snapshot = { ...selectedTask };
     const updateData: LF.UpdateTaskDto = {
       title: updates.title,
       description: updates.description as any,
@@ -152,6 +174,24 @@ export function useTaskOperations(
             const ranked = rankTasks([updated as any]);
             setSelectedTask(ranked[0]);
           });
+          if (updates.priority !== undefined && updates.priority !== snapshot.priority) {
+            timelineApi.reportActivity({
+              eventType: 'task_priority_changed',
+              data: { taskId: selectedTask.id, from: snapshot.priority, to: updates.priority },
+            }).catch(console.warn);
+          }
+          if (updates.complexity !== undefined && updates.complexity !== snapshot.complexity) {
+            timelineApi.reportActivity({
+              eventType: 'task_complexity_changed',
+              data: { taskId: selectedTask.id, from: snapshot.complexity, to: updates.complexity },
+            }).catch(console.warn);
+          }
+          if (updates.dueDate !== undefined && updates.dueDate !== snapshot.dueDate) {
+            timelineApi.reportActivity({
+              eventType: 'task_due_date_changed',
+              data: { taskId: selectedTask.id, dueDate: updates.dueDate },
+            }).catch(console.warn);
+          }
         }
       });
   });

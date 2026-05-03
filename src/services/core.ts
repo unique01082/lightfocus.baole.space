@@ -1,7 +1,8 @@
 import axios, { type AxiosResponse } from 'axios';
 
 export const request = axios.create({
-  baseURL: 'https://lightfocus.baole.space/core',
+  baseURL: 'http://localhost:3000',
+  // baseURL: 'https://lightfocus.baole.space/core',
   headers: {
     'Content-Type': 'application/json',
   },

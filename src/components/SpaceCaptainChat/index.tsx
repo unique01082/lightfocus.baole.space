@@ -22,9 +22,19 @@ export default function SpaceCaptainChat() {
     sendMessage,
     stop,
     error,
+    unreadChatCount,
+    markChatRead,
   } = useSpaceCaptainChat();
 
-  const { nonChatEntries } = useTimeline();
+  const { nonChatEntries, respondToFeedback, unreadTimelineCount, markTimelineSeen } = useTimeline();
+
+  const totalUnread = unreadChatCount + unreadTimelineCount;
+
+  const handleExpand = () => {
+    setIsExpanded(true);
+    markChatRead();
+    markTimelineSeen();
+  };
 
   // Merge conversation + timeline entries, sorted by timestamp
   const timeline = useMemo<TimelineEntry[]>(() => {
@@ -33,30 +43,37 @@ export default function SpaceCaptainChat() {
     );
   }, [conversationEntries, nonChatEntries]);
 
-  const handleFeedbackResponse = (feedbackId: string, _value: string) => {
-    // Mark responded in nonChatEntries via submitFeedback — just optimistic update
-    const entry = nonChatEntries.find((e) => e.id === feedbackId);
-    if (entry && entry.type === 'feedback_request') {
-      // The useTimeline hook manages live entries; we rely on it for state
-    }
+  const handleFeedbackResponse = (feedbackId: string, value: string) => {
+    respondToFeedback(feedbackId, value);
   };
 
   if (!isExpanded) {
     return (
       <button
-        onClick={() => setIsExpanded(true)}
+        onClick={handleExpand}
         className="absolute bottom-6 right-6 group flex items-center gap-2 bg-gradient-to-br from-indigo-900/90 via-purple-900/90 to-slate-900/90
           backdrop-blur-xl border border-indigo-400/40 rounded-2xl px-4 py-3
           shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40
           hover:border-indigo-400/70 transition-all duration-300 z-50"
       >
-        <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-indigo-400/50
-          group-hover:scale-110 transition-transform flex-shrink-0">
-          <img src={settings.agentImage} alt={settings.agentName} className="w-full h-full object-cover" />
+        <div className="relative w-10 h-10 flex-shrink-0">
+          <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-indigo-400/50
+            group-hover:scale-110 transition-transform">
+            <img src={settings.agentImage} alt={settings.agentName} className="w-full h-full object-cover" />
+          </div>
+          {totalUnread > 0 && (
+            <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full bg-red-500 text-white
+              text-[10px] font-bold flex items-center justify-center px-1 shadow-lg shadow-red-500/40
+              border border-red-400/60 leading-none">
+              {totalUnread > 99 ? '99+' : totalUnread}
+            </span>
+          )}
         </div>
         <div className="text-left">
           <div className="text-white text-sm font-bold">{settings.agentName}</div>
-          <div className="text-indigo-300/80 text-xs">AI Assistant</div>
+          <div className="text-indigo-300/80 text-xs">
+            {totalUnread > 0 ? `${totalUnread} new message${totalUnread > 1 ? 's' : ''}` : 'AI Assistant'}
+          </div>
         </div>
         <div className="ml-2 text-indigo-300/60 text-xs group-hover:text-indigo-300/90 transition-colors">
           Click to open ›

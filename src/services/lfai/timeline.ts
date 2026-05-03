@@ -45,6 +45,26 @@ export async function getTimeline(
   });
 }
 
+/** Get unread AI activity count in the timeline GET /api/v1/timeline/unread */
+export async function getUnreadTimeline(
+  options?: { [key: string]: any }
+) {
+  return request<{ count: number }>('/api/v1/timeline/unread', {
+    method: 'GET',
+    ...(options || {}),
+  });
+}
+
+/** Mark timeline as seen POST /api/v1/timeline/mark-seen */
+export async function markTimelineSeen(
+  options?: { [key: string]: any }
+) {
+  return request<{ seen: true }>('/api/v1/timeline/mark-seen', {
+    method: 'POST',
+    ...(options || {}),
+  });
+}
+
 /** SSE stream for real-time timeline events Establish Server-Sent Events connection for real-time activity updates GET /api/v1/timeline/stream */
 export async function streamTimeline(
   options ?: {[key: string]: any}

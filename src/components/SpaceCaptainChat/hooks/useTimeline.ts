@@ -4,10 +4,10 @@ import { fetchEventSource } from '../../../lib/fetchEventSource';
 import { request } from '../../../services/ai';
 import { timeline } from '../../../services/lfai';
 import type {
-  FeedbackRequestEntry,
-  SystemEventEntry,
-  TimelineEntry,
-  UserActivityEntry,
+    FeedbackRequestEntry,
+    SystemEventEntry,
+    TimelineEntry,
+    UserActivityEntry,
 } from '../types';
 
 interface ActivityLogEntry {
@@ -136,13 +136,18 @@ interface UseTimelineReturn {
   loading: boolean;
   error: string | null;
   refresh: () => void;
+  respondToFeedback: (feedbackId: string, value: string) => void;
+  unreadTimelineCount: number;
+  markTimelineSeen: () => void;
 }
 
 export function useTimeline(): UseTimelineReturn {
   const [entries, setEntries] = useState<TimelineEntry[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [unreadTimelineCount, setUnreadTimelineCount] = useState(0);
   const seenIds = useRef<Set<string>>(new Set());
   const streamControllerRef = useRef<AbortController | null>(null);
+  const reconnectDelayRef = useRef<number>(1000);
 
   const addEntry = useMemoizedFn((raw: ActivityLogEntry) => {
     if (seenIds.current.has(raw.id)) return;
@@ -150,6 +155,10 @@ export function useTimeline(): UseTimelineReturn {
     if (mapped) {
       seenIds.current.add(raw.id);
       setEntries((prev) => [...prev, mapped].sort((a, b) => +a.timestamp - +b.timestamp));
+      // Count new AI-originated entries (system_event) as unread
+      if (raw.type === 'system_event') {
+        setUnreadTimelineCount((c) => c + 1);
+      }
     }
   });
 
@@ -188,6 +197,22 @@ export function useTimeline(): UseTimelineReturn {
     },
   );
 
+  const respondToFeedback = useMemoizedFn((feedbackId: string, value: string) => {
+    setEntries((prev) =>
+      prev.map((e) => {
+        if (e.id !== feedbackId || e.type !== 'feedback_request') return e;
+        return { ...e, responded: { value, respondedAt: new Date() } } satisfies FeedbackRequestEntry;
+      }),
+    );
+    const entry = entries.find((e) => e.id === feedbackId && e.type === 'feedback_request') as
+      | FeedbackRequestEntry
+      | undefined;
+    timeline.submitFeedback({
+      eventType: entry?.questionType ?? 'feedback',
+      data: { value, feedbackId },
+    }).catch(console.warn);
+  });
+
   const startStream = useMemoizedFn(() => {
     const controller = new AbortController();
     streamControllerRef.current = controller;
@@ -203,6 +228,9 @@ export function useTimeline(): UseTimelineReturn {
       headers: {
         Authorization: `Bearer ${localStorage.getItem('token') ?? ''}`,
         Accept: 'text/event-stream',
+      },
+      onopen: async () => {
+        reconnectDelayRef.current = 1000;
       },
       onmessage: (e) => {
         try {
@@ -232,6 +260,15 @@ export function useTimeline(): UseTimelineReturn {
       },
       onerror: (err) => {
         setError(err.message);
+        if (!controller.signal.aborted) {
+          const delay = reconnectDelayRef.current;
+          reconnectDelayRef.current = Math.min(delay * 2, 30_000);
+          setTimeout(() => {
+            if (!controller.signal.aborted) {
+              startStream();
+            }
+          }, delay);
+        }
       },
     }).catch((err) => {
       if (!(err instanceof Error && err.name === 'AbortError')) {
@@ -243,11 +280,20 @@ export function useTimeline(): UseTimelineReturn {
   useMount(() => {
     refresh();
     startStream();
+    // Fetch initial unread count from server
+    timeline.getUnreadTimeline()
+      .then((res) => setUnreadTimelineCount((res as { count: number }).count ?? 0))
+      .catch(() => {});
   });
 
   useUnmount(() => {
     streamControllerRef.current?.abort();
   });
 
-  return { nonChatEntries: entries, loading, error, refresh };
+  const markTimelineSeen = useMemoizedFn(() => {
+    setUnreadTimelineCount(0);
+    timeline.markTimelineSeen().catch(console.warn);
+  });
+
+  return { nonChatEntries: entries, loading, error, refresh, respondToFeedback, unreadTimelineCount, markTimelineSeen };
 }
