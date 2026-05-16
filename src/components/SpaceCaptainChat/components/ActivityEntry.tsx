@@ -28,7 +28,7 @@ export default function ActivityEntry({ entry }: ActivityEntryProps) {
   return (
     <div className="flex items-start gap-3 py-2 justify-end">
       <div className="flex-1 text-right">
-        <div className="text-sm text-slate-300">
+        <div className="text-md text-slate-300">
           <span className="text-amber-400 font-semibold">You</span>{' '}
           <span className="text-slate-400">{actionText[entry.action]}</span>{' '}
           <span className="text-white font-semibold">"{entry.taskTitle}"</span>

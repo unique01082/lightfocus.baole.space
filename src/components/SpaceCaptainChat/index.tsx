@@ -51,32 +51,63 @@ export default function SpaceCaptainChat() {
     return (
       <button
         onClick={handleExpand}
-        className="absolute bottom-6 right-6 group flex items-center gap-2 bg-gradient-to-br from-indigo-900/90 via-purple-900/90 to-slate-900/90
-          backdrop-blur-xl border border-indigo-400/40 rounded-2xl px-4 py-3
-          shadow-lg shadow-indigo-500/20 hover:shadow-indigo-500/40
-          hover:border-indigo-400/70 transition-all duration-300 z-50"
+        className="absolute bottom-6 right-6 group z-50"
+        style={{ filter: totalUnread > 0
+          ? 'drop-shadow(0 0 14px rgba(245,158,11,0.55))'
+          : 'drop-shadow(0 0 12px rgba(99,102,241,0.5))' }}
       >
-        <div className="relative w-10 h-10 flex-shrink-0">
-          <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-indigo-400/50
-            group-hover:scale-110 transition-transform">
-            <img src={settings.agentImage} alt={settings.agentName} className="w-full h-full object-cover" />
+        {/* Corner brackets */}
+        <span className="absolute top-0 left-0 w-3 h-3 border-t-2 border-l-2 border-cyan-400/80 rounded-tl pointer-events-none" />
+        <span className="absolute top-0 right-0 w-3 h-3 border-t-2 border-r-2 border-cyan-400/80 rounded-tr pointer-events-none" />
+        <span className="absolute bottom-0 left-0 w-3 h-3 border-b-2 border-l-2 border-cyan-400/80 rounded-bl pointer-events-none" />
+        <span className="absolute bottom-0 right-0 w-3 h-3 border-b-2 border-r-2 border-cyan-400/80 rounded-br pointer-events-none" />
+
+        {/* Scanline overlay */}
+        <span className="absolute inset-0 rounded-xl pointer-events-none opacity-[0.04]"
+          style={{ backgroundImage: 'repeating-linear-gradient(0deg, #fff 0px, #fff 1px, transparent 1px, transparent 4px)' }} />
+
+        <div className="flex items-center gap-3 bg-gradient-to-br from-slate-950/95 via-indigo-950/90 to-slate-950/95
+          backdrop-blur-xl border border-indigo-500/40 group-hover:border-cyan-400/70
+          rounded-xl px-3 py-2.5 transition-all duration-300
+          shadow-[0_0_20px_rgba(99,102,241,0.25)] group-hover:shadow-[0_0_28px_rgba(34,211,238,0.4)]">
+
+          {/* Avatar with pulsing ring */}
+          <div className="relative w-9 h-9 flex-shrink-0">
+            <span className={`absolute inset-0 rounded-full border animate-ping opacity-30 ${
+              totalUnread > 0 ? 'border-amber-400/70' : 'border-cyan-400/40'
+            }`} />
+            <div className={`w-9 h-9 rounded-full overflow-hidden border-2 transition-colors ${
+              totalUnread > 0
+                ? 'border-amber-400/70 group-hover:border-amber-300'
+                : 'border-indigo-400/60 group-hover:border-cyan-400/80'
+            }`}>
+              <img src={settings.agentImage} alt={settings.agentName} className="w-full h-full object-cover" />
+            </div>
+            {totalUnread > 0 && (
+              <span className="absolute -top-1 -right-1 min-w-[17px] h-[17px] rounded-full bg-red-500
+                text-[9px] font-bold text-white flex items-center justify-center px-0.5
+                border border-red-400/60 shadow-[0_0_6px_rgba(239,68,68,0.6)] leading-none">
+                {totalUnread > 99 ? '99+' : totalUnread}
+              </span>
+            )}
           </div>
-          {totalUnread > 0 && (
-            <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full bg-red-500 text-white
-              text-[10px] font-bold flex items-center justify-center px-1 shadow-lg shadow-red-500/40
-              border border-red-400/60 leading-none">
-              {totalUnread > 99 ? '99+' : totalUnread}
-            </span>
-          )}
-        </div>
-        <div className="text-left">
-          <div className="text-white text-sm font-bold">{settings.agentName}</div>
-          <div className="text-indigo-300/80 text-xs">
-            {totalUnread > 0 ? `${totalUnread} new message${totalUnread > 1 ? 's' : ''}` : 'AI Assistant'}
+
+          {/* Text block */}
+          <div className="text-left min-w-0">
+            <div className="text-white text-sm font-bold font-mono leading-tight tracking-wide truncate">
+              {settings.agentName}
+            </div>
+            <div className="text-[10px] font-mono font-bold tracking-widest uppercase leading-none mt-0.5">
+              {totalUnread > 0
+                ? <span className="text-amber-400 animate-pulse">{totalUnread} NEW MSG{totalUnread > 1 ? 'S' : ''}</span>
+                : <span className="text-cyan-400/80">● ONLINE</span>}
+            </div>
           </div>
-        </div>
-        <div className="ml-2 text-indigo-300/60 text-xs group-hover:text-indigo-300/90 transition-colors">
-          Click to open ›
+
+          {/* CTA arrow */}
+          <div className="ml-1 text-cyan-300/50 group-hover:text-cyan-300 transition-colors font-mono text-base leading-none">
+            ▶
+          </div>
         </div>
       </button>
     );
@@ -125,8 +156,8 @@ export default function SpaceCaptainChat() {
                 <div className="w-2 h-2 rounded-full bg-purple-400 animate-pulse [animation-delay:0.2s]" />
                 <div className="w-2 h-2 rounded-full bg-blue-400 animate-pulse [animation-delay:0.4s]" />
               </div>
-              <div>
-                <div className="text-white font-mono text-base font-bold tracking-wider flex items-center gap-2">
+              <div className="text-white font-mono text-xs font-bold tracking-wider">
+                <div className="text-white font-mono text-sm font-bold tracking-wider flex items-center gap-2">
                   <span className="text-indigo-400">⟨⟨</span>
                   UNIFIED ACTIVITY TIMELINE
                   <span className="text-indigo-400">⟩⟩</span>
@@ -140,7 +171,7 @@ export default function SpaceCaptainChat() {
               onClick={() => setIsExpanded(false)}
               className="w-9 h-9 rounded-full bg-slate-800/90 hover:bg-red-900/70 border-2 border-slate-600/60
                 hover:border-red-500/60 text-slate-300 hover:text-red-300 transition-all duration-200
-                flex items-center justify-center text-sm font-bold shadow-lg"
+                flex items-center justify-center text-md font-bold shadow-lg"
             >
               ✕
             </button>

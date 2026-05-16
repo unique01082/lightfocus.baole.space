@@ -1,10 +1,10 @@
 import { useCallback } from "react";
 import * as THREE from "three";
 import type {
-  BullseyeRank,
-  Complexity
+    BullseyeRank,
+    Complexity
 } from "../../../types/task";
-import { groupByOrbit, rankTasks } from "../../../utils/ranking";
+import { groupByOrbit, ORBIT_META, rankTasks } from "../../../utils/ranking";
 import type { SceneData } from "./useThreeScene";
 
 const ORBIT_DISTANCES: Record<BullseyeRank, number> = {
@@ -139,11 +139,14 @@ export function usePlanetManager(
         planetOrbit.rotation.x = Math.PI / 2;
         sd.scene.add(planetOrbit);
 
-        // Create label
+        // Create label with rank-based border/glow color
         const labelDiv = document.createElement("div");
         labelDiv.className = "planet-label";
         labelDiv.textContent = task.title;
         labelDiv.style.display = sd.showLabels ? "block" : "none";
+        const rankColor = ORBIT_META[rank].color;
+        labelDiv.style.borderColor = rankColor + 'aa';
+        labelDiv.style.boxShadow = `0 0 10px ${rankColor}44, inset 0 0 6px ${rankColor}0f`;
         document.body.appendChild(labelDiv);
 
         // Create moons (subtasks) — 3D electron-style orbits
@@ -204,6 +207,8 @@ export function usePlanetManager(
           moonLabel.className = "moon-label";
           moonLabel.textContent = sub.title;
           moonLabel.style.display = "none";
+          moonLabel.style.borderColor = rankColor + '66';
+          moonLabel.style.boxShadow = `0 0 8px ${rankColor}28`;
           document.body.appendChild(moonLabel);
 
           // Varied speed: 0.005 – 0.015 (slower than before)

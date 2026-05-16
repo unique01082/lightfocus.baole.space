@@ -1,5 +1,15 @@
 import type { BullseyeRank, Priority, RankedTask, Task } from '../types/task';
 
+export const ORBIT_META: Record<BullseyeRank, { short: string; color: string }> = {
+  1: { short: 'CRITICAL',  color: '#ef4444' },
+  2: { short: 'VERY HIGH', color: '#f97316' },
+  3: { short: 'HIGH',      color: '#eab308' },
+  4: { short: 'MEDIUM',    color: '#22d3ee' },
+  5: { short: 'LOW',       color: '#60a5fa' },
+  6: { short: 'VERY LOW',  color: '#a78bfa' },
+  7: { short: 'MIN',       color: '#6b7280' },
+};
+
 /**
  * Calculate Bullseye rank (1-7) based on task properties.
  * Lower rank = more important = closer to sun.

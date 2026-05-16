@@ -15,7 +15,7 @@ export default function AgentAvatar({ agentName, agentImage }: AgentAvatarProps)
       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/30" />
 
       <div className="absolute bottom-4 left-0 right-0 text-center z-10">
-        <div className="text-sm text-indigo-300 font-mono uppercase tracking-[0.3em] mb-1">
+        <div className="text-xs text-indigo-300 font-mono uppercase tracking-[0.3em] mb-1">
           A.I. Navigation System
         </div>
         <div className="text-2xl text-indigo-100 font-mono font-bold tracking-wider mb-2">

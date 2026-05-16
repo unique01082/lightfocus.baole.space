@@ -11,6 +11,9 @@ interface RadioGroupProps {
   value: string;
   onChange: (value: string) => void;
   className?: string;
+  activeClass?: string;
+  inactiveClass?: string;
+  containerClass?: string;
 }
 
 export default function RadioGroup({
@@ -18,19 +21,18 @@ export default function RadioGroup({
   value,
   onChange,
   className = '',
+  activeClass = 'bg-gradient-to-br from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-500/30',
+  inactiveClass = 'text-purple-200 hover:bg-purple-700/30 hover:text-white',
+  containerClass = 'border-purple-400/30',
 }: RadioGroupProps) {
   return (
-    <div className={`inline-flex bg-black/40 backdrop-blur-xl border border-purple-400/30 rounded-xl p-1 ${className}`}>
+    <div className={`inline-flex bg-black/40 backdrop-blur-xl border rounded-xl p-1 ${containerClass} ${className}`}>
       {options.map((option) => (
         <button
           key={option.value}
           className={`
             px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200
-            ${
-              value === option.value
-                ? 'bg-gradient-to-br from-purple-600 to-indigo-600 text-white shadow-lg shadow-purple-500/30'
-                : 'text-purple-200 hover:bg-purple-700/30 hover:text-white'
-            }
+            ${value === option.value ? activeClass : inactiveClass}
           `}
           onClick={() => onChange(option.value)}
         >

@@ -88,7 +88,7 @@ export default function TaskDetailPanel({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 z-[500] flex items-center justify-center p-4"
       style={{
         backdropFilter: 'blur(12px)',
         background: 'rgba(0, 0, 0, 0.5)',
@@ -181,8 +181,9 @@ export default function TaskDetailPanel({
                   <span className="text-[10px] text-purple-300 uppercase tracking-wider font-bold">🌙 Moons (Subtasks)</span>
                 </div>
                 <div className="space-y-2 mt-3">
-                  {task.subtasks && task.subtasks.length > 0 ? (
-                    task.subtasks.map((sub: Subtask) => (
+                  {task.subtasks && task.subtasks.length > 0 && (
+                    <div className="max-h-48 overflow-y-auto scrollbar-thin space-y-2 pr-1">
+                    {task.subtasks.map((sub: Subtask) => (
                       <div key={sub.id} className="flex items-center gap-2 group">
                         <button
                           onClick={() => onToggleSubtask(sub.id)}
@@ -205,8 +206,10 @@ export default function TaskDetailPanel({
                           🗑
                         </button>
                       </div>
-                    ))
-                  ) : (
+                    ))}
+                    </div>
+                  )}
+                  {(!task.subtasks || task.subtasks.length === 0) && (
                     <div className="text-xs text-white/40 italic py-2">No moons yet.</div>
                   )}
 

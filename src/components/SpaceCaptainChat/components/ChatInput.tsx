@@ -45,7 +45,7 @@ export default function ChatInput({ onSendMessage, isLoading = false, status, on
           onKeyDown={handleKeyDown}
           disabled={isLoading}
           placeholder={isLoading ? 'Agent is busy...' : 'TRANSMIT MESSAGE TO AI AGENT...'}
-          className="flex-1 bg-slate-900/70 border-2 border-indigo-500/40 rounded-xl px-4 py-3 text-indigo-100 placeholder-indigo-500/50 resize-none font-mono text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400/60 focus:border-indigo-400/60 transition-all min-h-[80px] max-h-[160px] overflow-y-auto disabled:opacity-50 disabled:cursor-not-allowed"
+          className="flex-1 bg-slate-900/70 border-2 border-indigo-500/40 rounded-xl px-4 py-3 text-indigo-100 placeholder-indigo-500/50 resize-none font-mono text-md focus:outline-none focus:ring-2 focus:ring-indigo-400/60 focus:border-indigo-400/60 transition-all min-h-[80px] max-h-[160px] overflow-y-auto disabled:opacity-50 disabled:cursor-not-allowed"
         />
         {isStreaming && onStop ? (
           <button

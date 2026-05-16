@@ -9,6 +9,24 @@ const AI_AGENT_IMAGES = [
 ];
 
 export type AgentPersonality = 'friendly' | 'professional' | 'motivational' | 'strict';
+export type WorkSchedule = 'early_bird' | 'morning' | 'afternoon' | 'evening' | 'night_owl';
+export type MotivationType = 'achievement' | 'progress' | 'reward' | 'deadline' | 'social';
+export type CommunicationStyle = 'casual' | 'formal' | 'direct' | 'detailed';
+export type LearningStyle = 'visual' | 'reading' | 'hands_on' | 'discussion';
+
+export interface UserProfile {
+  nickname: string;
+  job: string;
+  bio: string;
+  hobbies: string;
+  expectations: string;
+  targets: string;
+  timezone: string;
+  workSchedule: WorkSchedule | '';
+  motivationType: MotivationType | '';
+  communicationStyle: CommunicationStyle | '';
+  learningStyle: LearningStyle | '';
+}
 
 export const PERSONALITY_OPTIONS: { value: AgentPersonality; label: string; emoji: string; description: string }[] = [
   { value: 'friendly', label: 'Friendly', emoji: '😊', description: 'Warm, encouraging, conversational' },
@@ -21,6 +39,8 @@ interface Settings {
   agentName: string;
   agentImage: string;
   agentPersonality: AgentPersonality;
+  language: string;
+  userProfile: Partial<UserProfile>;
 }
 
 interface SettingsContextValue {
@@ -35,6 +55,8 @@ const DEFAULT_SETTINGS: Settings = {
   agentName: 'ARIA-7',
   agentImage: AI_AGENT_IMAGES[0],
   agentPersonality: 'friendly',
+  language: 'en',
+  userProfile: {},
 };
 
 const SettingsContext = createContext<SettingsContextValue | undefined>(undefined);

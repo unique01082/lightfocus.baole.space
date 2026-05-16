@@ -111,20 +111,20 @@ export default function ChatTimeline({
       <div
         ref={scrollContainerRef}
         onScroll={updateFollowPreference}
-        className="h-full min-h-0 overflow-y-auto px-6 py-5 space-y-4 scrollbar-thin"
+        className="h-full min-h-0 overflow-y-auto px-4 py-3 space-y-2 scrollbar-thin"
       >
         {Object.entries(groupedTimeline).map(([dateStr, entries]) => (
-          <div key={dateStr} className="space-y-4">
+          <div key={dateStr} className="space-y-2">
             {/* Date Header */}
             <TimelineDateHeader dateStr={dateStr} />
 
             {/* Timeline Entries */}
-            <div className="space-y-5">{entries.map((entry) => renderTimelineEntry(entry))}</div>
+            <div className="space-y-3">{entries.map((entry) => renderTimelineEntry(entry))}</div>
           </div>
         ))}
 
         {timeline.length === 0 && (
-          <div className="flex items-center justify-center h-full text-indigo-400/40 text-sm font-mono">
+          <div className="flex items-center justify-center h-full text-indigo-400/40 text-md font-mono">
             No timeline entries yet. Start a conversation with your AI companion...
           </div>
         )}
@@ -134,13 +134,13 @@ export default function ChatTimeline({
         <button
           type="button"
           onClick={scrollToLatest}
-          className="absolute bottom-4 right-6 inline-flex items-center gap-1.5 rounded-full
-            border border-indigo-300/40 bg-slate-900/90 px-3 py-1.5 text-xs font-semibold text-indigo-100
+          aria-label="Jump to latest"
+          className="absolute bottom-4 left-1/2 -translate-x-1/2 w-8 h-8 flex items-center justify-center rounded-full
+            border border-indigo-300/40 bg-slate-900/90 text-sm font-bold text-indigo-100
             shadow-lg shadow-black/30 backdrop-blur-sm transition-all duration-200
-            hover:border-indigo-300/70 hover:bg-indigo-900/90"
+            hover:border-cyan-400/70 hover:bg-indigo-900/90 hover:text-cyan-300"
         >
-          <span aria-hidden>↓</span>
-          Jump to latest
+          ↓
         </button>
       )}
     </div>

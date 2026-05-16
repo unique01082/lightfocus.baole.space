@@ -16,9 +16,9 @@ export default function ConversationEntry({
   captainName,
 }: ConversationEntryProps) {
   return (
-    <div className={`flex gap-4 ${entry.role === 'captain' ? 'flex-row-reverse' : ''}`}>
+    <div className={`flex gap-2.5 ${entry.role === 'captain' ? 'flex-row-reverse' : ''}`}>
       <div
-        className={`w-12 h-12 flex-shrink-0 rounded-full flex items-center justify-center text-lg font-bold border-2
+        className={`w-8 h-8 flex-shrink-0 rounded-full flex items-center justify-center text-md font-bold border-2
         ${
           entry.role === 'agent'
             ? 'bg-gradient-to-br from-indigo-600 to-purple-700 border-indigo-400/50 text-white shadow-lg shadow-indigo-500/40'
@@ -36,24 +36,24 @@ export default function ConversationEntry({
         className={`max-w-[70%] ${entry.role === 'captain' ? 'items-end' : 'items-start'} flex flex-col gap-1.5`}
       >
         <div
-          className={`flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-widest
+          className={`flex items-center gap-1.5 text-[10px] font-mono font-bold uppercase tracking-widest
           ${entry.role === 'agent' ? 'text-indigo-400' : 'text-amber-400'}`}
         >
           {entry.role === 'agent' ? (
             <>
-              <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
-              {agentName} • AI ASSISTANT
+              <span className="w-1 h-1 bg-green-400 rounded-full animate-pulse" />
+              {agentName}
             </>
           ) : (
             <>
-              CAPTAIN {captainName} • COMMANDING OFFICER
-              <span className="w-1.5 h-1.5 bg-amber-400 rounded-full" />
+              CPT {captainName}
+              <span className="w-1 h-1 bg-amber-400 rounded-full" />
             </>
           )}
         </div>
         {entry.toolCalls && <ToolCallIndicator toolCalls={entry.toolCalls} />}
         <div
-          className={`px-5 py-3.5 rounded-2xl text-base leading-relaxed font-sans border-2
+          className={`px-3 py-2 rounded-xl text-md leading-relaxed font-sans border
             ${
               entry.role === 'agent'
                 ? 'bg-indigo-900/70 border-indigo-500/40 text-indigo-50 rounded-tl-sm shadow-lg shadow-indigo-900/30'

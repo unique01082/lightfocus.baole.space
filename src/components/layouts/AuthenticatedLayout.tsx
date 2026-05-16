@@ -1,7 +1,6 @@
 import { Outlet } from 'react-router';
 import pk from '../../../package.json';
 import Navbar from '../Navbar';
-import SpaceCaptainChat from '../SpaceCaptainChat';
 
 /**
  * Layout for authenticated pages with full features
@@ -15,8 +14,6 @@ export default function AuthenticatedLayout() {
       <main className="flex-1">
         <Outlet />
       </main>
-
-      <SpaceCaptainChat />
 
       <footer className="nasa-footer">
         <div className="footer-content">

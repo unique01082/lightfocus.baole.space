@@ -21,17 +21,17 @@ const severityIcons = {
 
 export default function SystemEventEntry({ entry }: SystemEventEntryProps) {
   return (
-    <div className="flex gap-4">
-      <div className="w-12 h-12 flex-shrink-0 rounded-full flex items-center justify-center text-2xl bg-gradient-to-br from-purple-600 to-pink-700 border-2 border-purple-400/50 shadow-lg shadow-purple-500/40">
+    <div className="flex gap-2.5">
+      <div className="w-8 h-8 flex-shrink-0 rounded-full flex items-center justify-center text-base bg-gradient-to-br from-purple-600 to-pink-700 border border-purple-400/50 shadow-lg shadow-purple-500/40">
         {severityIcons[entry.severity]}
       </div>
       <div className="flex-1">
-        <div className="flex items-center gap-2 text-xs font-mono font-bold uppercase tracking-widest text-purple-400 mb-1.5">
+        <div className="flex items-center gap-1.5 text-[10px] font-mono font-bold uppercase tracking-widest text-purple-400 mb-1">
           <span className="w-1.5 h-1.5 bg-purple-400 rounded-full animate-pulse" />
           SYSTEM EVENT • {entry.eventType.replace(/_/g, ' ').toUpperCase()}
         </div>
         <div
-          className={`px-5 py-3.5 rounded-2xl text-base leading-relaxed font-sans border-2 rounded-tl-sm shadow-lg ${severityStyles[entry.severity]}`}
+          className={`px-3 py-2 rounded-xl text-md leading-relaxed font-sans border rounded-tl-sm shadow-lg ${severityStyles[entry.severity]}`}
         >
           <MarkdownRenderer content={entry.content} />
           {entry.actions && entry.actions.length > 0 && (
@@ -39,7 +39,7 @@ export default function SystemEventEntry({ entry }: SystemEventEntryProps) {
               {entry.actions.map((action, idx) => (
                 <button
                   key={idx}
-                  className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/40 rounded-lg text-sm font-semibold transition-all duration-200"
+                  className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/40 rounded-lg text-md font-semibold transition-all duration-200"
                 >
                   {action.emoji} {action.label}
                 </button>

@@ -132,12 +132,61 @@ export function useSceneInteraction({
       }
     };
 
+    // Planet hover tooltip
+    const tooltip = document.createElement("div");
+    tooltip.style.cssText = `
+      position: fixed;
+      pointer-events: none;
+      z-index: 9999;
+      background: rgba(0, 5, 18, 0.88);
+      border: 1px solid rgba(34, 211, 238, 0.55);
+      border-radius: 5px;
+      padding: 4px 10px;
+      font-family: 'Space Mono', monospace;
+      font-size: 11px;
+      font-weight: 700;
+      color: rgba(255,255,255,0.92);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      display: none;
+      box-shadow: 0 0 10px rgba(34,211,238,0.25);
+      backdrop-filter: blur(4px);
+      white-space: nowrap;
+    `;
+    document.body.appendChild(tooltip);
+
+    const hoverMouse = new THREE.Vector2();
+    const onMouseMove = (event: MouseEvent) => {
+      const currentSd = sceneDataRef.current;
+      if (!currentSd) return;
+      hoverMouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+      hoverMouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+      raycaster.setFromCamera(hoverMouse, currentSd.camera);
+      const meshes = currentSd.planets.map((p) => p.mesh);
+      const intersects = raycaster.intersectObjects(meshes);
+      if (intersects.length > 0) {
+        const hit = intersects[0].object;
+        const planetData = currentSd.planets.find((p) => p.mesh === hit);
+        if (planetData) {
+          tooltip.innerHTML = `<span style="color:${planetData.task.color};margin-right:5px">◆</span>${planetData.task.title}`;
+          tooltip.style.display = "block";
+          tooltip.style.left = `${event.clientX + 16}px`;
+          tooltip.style.top = `${event.clientY - 24}px`;
+          return;
+        }
+      }
+      tooltip.style.display = "none";
+    };
+
     window.addEventListener("click", onClick);
     window.addEventListener("keydown", onKeyDown);
+    window.addEventListener("mousemove", onMouseMove);
 
     return () => {
       window.removeEventListener("click", onClick);
       window.removeEventListener("keydown", onKeyDown);
+      window.removeEventListener("mousemove", onMouseMove);
+      if (tooltip.parentNode) tooltip.parentNode.removeChild(tooltip);
     };
   }, [
     sceneDataRef,

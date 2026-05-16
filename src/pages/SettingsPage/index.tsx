@@ -1,17 +1,24 @@
 import { useState } from 'react';
 import { Link } from 'react-router';
-import { PERSONALITY_OPTIONS, useSettings } from '../../contexts/SettingsContext';
+import AgentConfigSection from './components/AgentConfigSection';
+import FutureSection from './components/FutureSection';
+import LanguageSection from './components/LanguageSection';
+import MemoriesSection from './components/MemoriesSection';
 import RankingConfigSection from './components/RankingConfigSection';
+import UserProfileSection from './components/UserProfileSection';
+
+type SettingsTab = 'agent' | 'profile' | 'ranking' | 'memory' | 'more';
+
+const TABS: { id: SettingsTab; icon: string; label: string }[] = [
+  { id: 'agent',   icon: '🤖', label: 'Agent'   },
+  { id: 'profile', icon: '👤', label: 'Profile'  },
+  { id: 'ranking', icon: '🎯', label: 'Ranking'  },
+  { id: 'memory',  icon: '🧠', label: 'Memory'   },
+  { id: 'more',    icon: '⚙️',  label: 'More'     },
+];
 
 export default function SettingsPage() {
-  const { settings, updateSettings, availableImages } = useSettings();
-  const [agentName, setAgentName] = useState(settings.agentName);
-
-  const handleNameSave = () => {
-    if (agentName.trim()) {
-      updateSettings({ agentName: agentName.trim() });
-    }
-  };
+  const [activeTab, setActiveTab] = useState<SettingsTab>('agent');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-950 via-purple-950 to-pink-950 py-8 px-4">
@@ -19,124 +26,79 @@ export default function SettingsPage() {
         {/* Back link */}
         <Link
           to="/"
-          className="inline-flex items-center gap-2 text-purple-300 hover:text-white transition-colors mb-8 text-sm"
+          className="inline-flex items-center gap-2 text-purple-300 hover:text-white transition-colors mb-6 text-sm"
         >
           ← Back to Dashboard
         </Link>
 
-        <h1 className="text-3xl font-bold text-white mb-8">⚙️ Settings</h1>
+        <h1 className="text-3xl font-bold text-white mb-6">⚙️ Settings</h1>
 
+        {/* Tab bar */}
+        <div className="flex gap-1 bg-black/40 backdrop-blur-xl border border-purple-400/20 rounded-2xl p-1.5 mb-6 overflow-x-auto scrollbar-thin">
+          {TABS.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-mono font-semibold
+                whitespace-nowrap transition-all duration-200 flex-1 justify-center
+                ${activeTab === tab.id
+                  ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/50'
+                  : 'text-purple-300/70 hover:text-white hover:bg-white/5'
+                }`}
+            >
+              <span>{tab.icon}</span>
+              <span>{tab.label}</span>
+            </button>
+          ))}
+        </div>
+
+        {/* Tab content */}
         <div className="space-y-6">
-          {/* AI Agent Settings */}
-          <div className="bg-black/40 backdrop-blur-xl border border-purple-400/30 rounded-2xl p-6 space-y-6">
-            <h2 className="text-xl font-bold text-white flex items-center gap-2">
-              🤖 AI Agent Configuration
-            </h2>
+          {activeTab === 'agent' && (
+            <>
+              <AgentConfigSection />
+              <LanguageSection />
+            </>
+          )}
 
-            {/* Agent Name */}
-            <div className="space-y-2">
-              <label className="text-sm text-purple-300/80 font-medium">Agent Name</label>
-              <div className="flex gap-3">
-                <input
-                  type="text"
-                  value={agentName}
-                  onChange={(e) => setAgentName(e.target.value)}
-                  maxLength={20}
-                  className="flex-1 bg-indigo-950/60 border border-indigo-500/30 rounded-xl px-4 py-2.5
-                    text-white text-sm font-mono placeholder-indigo-500/50
-                    focus:outline-none focus:border-indigo-400/60 focus:ring-1 focus:ring-indigo-400/30"
-                  placeholder="Enter agent name..."
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleNameSave();
-                  }}
-                />
-                <button
-                  onClick={handleNameSave}
-                  className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-bold
-                    rounded-xl transition-all border border-indigo-400/30"
-                >
-                  Save
-                </button>
-              </div>
-              <p className="text-xs text-purple-400/60">Current: {settings.agentName}</p>
-            </div>
+          {activeTab === 'profile' && (
+            <UserProfileSection />
+          )}
 
-            {/* Agent Personality */}
-            <div className="space-y-3">
-              <label className="text-sm text-purple-300/80 font-medium">AI Personality</label>
-              <div className="grid grid-cols-2 gap-3">
-                {PERSONALITY_OPTIONS.map((opt) => (
-                  <button
-                    key={opt.value}
-                    onClick={() => updateSettings({ agentPersonality: opt.value })}
-                    className={`text-left p-3 rounded-xl border-2 transition-all duration-200
-                      ${settings.agentPersonality === opt.value
-                        ? 'border-indigo-400 bg-indigo-900/50 shadow-lg shadow-indigo-500/20'
-                        : 'border-white/10 hover:border-purple-400/40 bg-black/20'
-                      }`}
-                  >
-                    <div className="text-lg mb-1">{opt.emoji}</div>
-                    <div className="text-white text-sm font-bold font-mono">{opt.label}</div>
-                    <div className="text-indigo-300/60 text-xs mt-0.5">{opt.description}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
+          {activeTab === 'ranking' && (
+            <RankingConfigSection />
+          )}
 
-            {/* Agent Image */}
-            <div className="space-y-3">
-              <label className="text-sm text-purple-300/80 font-medium">Agent Avatar</label>
-              <div className="grid grid-cols-2 gap-4">
-                {availableImages.map((img) => (
-                  <button
-                    key={img}
-                    onClick={() => updateSettings({ agentImage: img })}
-                    className={`relative rounded-xl overflow-hidden border-2 transition-all duration-300 aspect-square
-                      ${settings.agentImage === img
-                        ? 'border-indigo-400 shadow-lg shadow-indigo-500/40 scale-[1.02]'
-                        : 'border-white/10 hover:border-purple-400/50 opacity-70 hover:opacity-100'
-                      }`}
-                  >
-                    <img
-                      src={img}
-                      alt="AI Agent Avatar"
-                      className="w-full h-full object-cover"
-                    />
-                    {settings.agentImage === img && (
-                      <div className="absolute top-2 right-2 w-6 h-6 bg-indigo-500 rounded-full flex items-center justify-center text-white text-xs font-bold border-2 border-white">
-                        ✓
-                      </div>
-                    )}
-                  </button>
-                ))}
-              </div>
-            </div>
+          {activeTab === 'memory' && (
+            <MemoriesSection />
+          )}
 
-            {/* Preview */}
-            <div className="border-t border-purple-500/20 pt-4">
-              <label className="text-sm text-purple-300/80 font-medium mb-3 block">Preview</label>
-              <div className="flex items-center gap-4 bg-indigo-950/40 rounded-xl p-4 border border-indigo-500/20">
-                <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-indigo-400/50 flex-shrink-0">
-                  <img
-                    src={settings.agentImage}
-                    alt={settings.agentName}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div>
-                  <div className="text-white font-bold font-mono">{settings.agentName}</div>
-                  <div className="text-indigo-300/60 text-xs font-mono">AI Navigation Assistant</div>
-                  <div className="flex items-center gap-1.5 mt-1">
-                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                    <span className="text-green-300 text-xs font-mono">ONLINE</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Ranking Algorithm */}
-          <RankingConfigSection />
+          {activeTab === 'more' && (
+            <>
+              <FutureSection
+                icon="🔌"
+                title="Connected Apps & Data Sources"
+                description="Sync tasks and context from your favourite tools. ARIA-7 will use this to give smarter suggestions."
+                items={[
+                  { icon: '📅', label: 'Google Calendar', detail: 'Sync events & deadlines' },
+                  { icon: '🗂', label: 'Notion', detail: 'Import pages & databases' },
+                  { icon: '💬', label: 'Slack / Teams', detail: 'Activity context' },
+                  { icon: '🐙', label: 'GitHub', detail: 'PR & issue tracking' },
+                ]}
+              />
+              <FutureSection
+                icon="⚡"
+                title="Subscription & Tokens"
+                description="Unlock more AI interactions and premium features with a subscription plan."
+                items={[
+                  { icon: '🆓', label: 'Free Plan', detail: '100 tokens / month' },
+                  { icon: '🚀', label: 'Pro — $9/mo', detail: '5,000 tokens / month' },
+                  { icon: '💎', label: 'Ultra — $29/mo', detail: 'Unlimited tokens' },
+                  { icon: '🏢', label: 'Team', detail: 'Shared workspace + admin' },
+                ]}
+              />
+            </>
+          )}
         </div>
       </div>
     </div>

@@ -160,6 +160,7 @@ export default function SolarSystem() {
             handleFollowPlanet(task);
           }
         }}
+        onCompleteTask={(id) => taskOps.toggleComplete(id)}
       />
 
       {showTaskPanel && selectedTask && (

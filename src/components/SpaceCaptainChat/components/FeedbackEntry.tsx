@@ -21,7 +21,7 @@ export default function FeedbackEntry({ entry, onRespond }: FeedbackEntryProps) 
         <div className="px-5 py-3.5 rounded-2xl text-base leading-relaxed font-sans border-2 bg-cyan-950/60 border-cyan-500/40 text-cyan-50 rounded-tl-sm shadow-lg">
           <div className="mb-3">{entry.question}</div>
           {isResponded ? (
-            <div className="flex items-center gap-2 text-sm text-cyan-300">
+            <div className="flex items-center gap-2 text-md text-cyan-300">
               <span>✓ Responded:</span>
               <span className="font-semibold">
                 {entry.options.find((opt) => opt.value === entry.responded?.value)?.emoji}{' '}
@@ -34,7 +34,7 @@ export default function FeedbackEntry({ entry, onRespond }: FeedbackEntryProps) 
                 <button
                   key={option.value}
                   onClick={() => onRespond(entry.id, option.value)}
-                  className="px-4 py-2.5 bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/40 rounded-lg text-sm font-semibold transition-all duration-200 hover:scale-105"
+                  className="px-4 py-2.5 bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/40 rounded-lgmd font-semibold transition-all duration-200 hover:scale-105"
                 >
                   {option.emoji} {option.label}
                 </button>
