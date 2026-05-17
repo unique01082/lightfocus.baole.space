@@ -1,12 +1,15 @@
 {
 	"folders": [
 		{
+			"name": "UI",
 			"path": "."
 		},
 		{
+			"name": "AI",
 			"path": "../lightfocus-ai"
 		},
 		{
+			"name": "API",
 			"path": "../lightfocus-api"
 		}
 	],
